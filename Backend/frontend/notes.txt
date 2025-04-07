@@ -1,0 +1,9 @@
+Fix bug on home page if user cancels connection with wallet.
+
+Spamming or abuse	
+Someone could join, pay 10 tHYDRA, then call many transactions and drain the gas pool. 
+Solution: track per-player usage, limit txs, or expire access.
+
+Trust model
+Players are trusting that this 10 tHYDRA isn't refundable and will only be used to fuel
+their game actions.This should be clearly explained in UI.
