@@ -1,0 +1,29 @@
+specVersion: 0.0.4
+description: Monolyth Game Subgraph
+repository: https://github.com/Reblayzer/Game
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum/contract
+    name: GameEngine
+    network: hydraTestnet
+    source:
+      address: "0x4383611e0a47C67e3abe174bF6b19E315251595C"
+      abi: GameEngine
+      startBlock: 21788383
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - Player
+        - Plot
+      abis:
+        - name: GameEngine
+          file: ../../artifacts/contracts/GameEngine.sol/GameEngine.json
+      eventHandlers:
+        - event: WorldJoined(indexed address,indexed uint256,uint256)
+          handler: handleWorldJoined
+        - event: PlotPurchased(indexed address,indexed uint256,uint8,uint8,uint256)
+          handler: handlePlotPurchased
+      file: ./src/mapping.ts

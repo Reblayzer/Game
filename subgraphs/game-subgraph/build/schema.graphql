@@ -1,0 +1,15 @@
+type Player @entity(immutable: true) {
+	id: ID!
+	worldId: BigInt!
+	plotsOwned: Int!
+	joinedAt: BigInt!
+}
+
+type Plot @entity(immutable: true) {
+	id: ID!
+	worldId: BigInt!
+	x: Int!
+	y: Int!
+	owner: Player!
+	price: BigInt!
+}

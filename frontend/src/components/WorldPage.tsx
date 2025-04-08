@@ -67,10 +67,10 @@ const WorldPage: React.FC = () => {
 				owners[x] = [];
 				for (let y = 0; y < 10; y++) {
 					const index = x * 10 + y;
-					const owner = ownersFlat[index];
+					const owner = ownersFlat[index].toLowerCase();
 					owners[x][y] = owner;
 
-					if (owner !== ZeroAddress && !usernames[owner]) {
+					if (owner !== ZeroAddress.toLowerCase() && !usernames[owner]) {
 						try {
 							usernames[owner] = await registry.getUsername(owner);
 						} catch {
@@ -100,8 +100,8 @@ const WorldPage: React.FC = () => {
 	}, [loadWorldData]);
 
 	const renderPlot = (x: number, y: number, owner: string) => {
-		const isUnowned = owner === ethers.ZeroAddress;
-		const isMine = owner?.toLowerCase() === currentUser.toLowerCase();
+		const isUnowned = owner === ZeroAddress.toLowerCase();
+		const isMine = owner === currentUser.toLowerCase();
 		const isBuyingThis = buyingPlot?.x === x && buyingPlot?.y === y;
 
 		const handleBuy = async () => {
@@ -148,11 +148,8 @@ const WorldPage: React.FC = () => {
 			}
 		};
 
-		// Styling
 		const bgColor = isUnowned ? "gray.100" : isMine ? "green.300" : "red.300";
-
-		const isDisabled = !!buyingPlot && !(isBuyingThis || isUnowned); // disable only if buying another
-
+		const isDisabled = !!buyingPlot && !(isBuyingThis || isUnowned);
 		const content = isBuyingThis ? (
 			<Spinner size="xs" />
 		) : isUnowned ? (
@@ -190,22 +187,17 @@ const WorldPage: React.FC = () => {
 	return (
 		<Box borderWidth="1px" borderRadius="md" p={6}>
 			<Heading size="md">🌍 World {id}</Heading>
-
 			<Text mt={4} mb={2}>
 				Resource Balance:
 			</Text>
 			<VStack align="start" spacing={1}>
 				{resources.map((amount, idx) => (
-					<Text
-						key={`resource-${amount}-${id}-${new Date().getTime()}-${Math.random()}`}
-					>
+					<Text key={`resource-${amount}-${id}`}>
 						R{idx + 1}: {amount}
 					</Text>
 				))}
 			</VStack>
-
 			<Text mt={4}>Next Plot Price: {price}</Text>
-
 			<Text mt={6} mb={2}>
 				Plot Grid:
 			</Text>

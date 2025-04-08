@@ -1,0 +1,18 @@
+Fix bug on home page if user cancels connection with wallet.
+
+Spamming or abuse	
+Someone could join, pay 10 tHYDRA, then call many transactions and drain the gas pool. 
+Solution: track per-player usage, limit txs, or expire access.
+
+Trust model
+Players are trusting that this 10 tHYDRA isn't refundable and will only be used to fuel
+their game actions.This should be clearly explained in UI.
+
+🔄 Upgrade Order Recommendation
+Step	Feature	Complexity	Immediate Gain
+✅ 1	Non-transfer tokens	Low	High security - DONE
+✅ 2	Pre-whitelisted game contracts	Low	Smoother UX - 
+✅ 4	Subgraph for GameEngine	Medium	⚡ Performance - IN PROGRESS
+✅ 3	Local wallet (later)	Medium	MetaMask-free UX - 
+✅ 6	NFTs as players/items	Medium-High	Modular data layer - 
+✅ 5	Factory contracts	High	Modularity & scaling - 
