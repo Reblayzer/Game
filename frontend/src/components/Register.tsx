@@ -9,7 +9,7 @@ import {
 	useToast,
 } from "@chakra-ui/react";
 import { ethers } from "ethers";
-import GameRegistryABI from "../abis/GameRegistryABI.json";
+import PlayerNFTABI from "../abis/PlayerNFTABI.json";
 import { CONTRACTS } from "../constants/addresses";
 import { useNavigate } from "react-router-dom";
 
@@ -41,14 +41,15 @@ const Register: React.FC<Props> = ({ account, connect }) => {
 			const signer = await provider.getSigner();
 			const address = await signer.getAddress();
 
-			const contract = new ethers.Contract(
-				CONTRACTS.gameRegistryAddress,
-				GameRegistryABI.abi,
+			const playerNFT = new ethers.Contract(
+				CONTRACTS.playerNFTAddress,
+				PlayerNFTABI.abi,
 				provider,
 			);
-			const registered = await contract.isRegistered(address);
 
-			if (registered) {
+			const hasMinted = await playerNFT.hasMinted(address);
+
+			if (hasMinted) {
 				navigate("/home");
 			} else {
 				toast({
@@ -81,19 +82,21 @@ const Register: React.FC<Props> = ({ account, connect }) => {
 
 			const provider = new ethers.BrowserProvider(window.ethereum);
 			const signer = await provider.getSigner();
-			const contract = new ethers.Contract(
-				CONTRACTS.gameRegistryAddress,
-				GameRegistryABI.abi,
+
+			const playerNFT = new ethers.Contract(
+				CONTRACTS.playerNFTAddress,
+				PlayerNFTABI.abi,
 				signer,
 			);
 
-			const tx = await contract.register(username);
+			const tx = await playerNFT.registerPlayer(username);
 			await tx.wait();
 
 			toast({
-				title: "Registration successful",
+				title: "🎉 PlayerNFT Minted",
+				description: "You’ve been registered and minted an NFT",
 				status: "success",
-				duration: 3000,
+				duration: 4000,
 				isClosable: true,
 			});
 
@@ -101,7 +104,8 @@ const Register: React.FC<Props> = ({ account, connect }) => {
 		} catch (err: unknown) {
 			toast({
 				title: "Registration Error",
-				description: err instanceof Error ? err.message : "Something went wrong",
+				description:
+					err instanceof Error ? err.message : "Something went wrong",
 				status: "error",
 				duration: 5000,
 				isClosable: true,

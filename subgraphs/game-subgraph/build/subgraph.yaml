@@ -8,19 +8,84 @@ dataSources:
     name: GameEngine
     network: hydraTestnet
     source:
-      address: "0x4383611e0a47C67e3abe174bF6b19E315251595C"
+      address: "0x4741e73941A1C3dd7326Eb86c4484e73D89DE46f"
       abi: GameEngine
-      startBlock: 21788383
+      startBlock: 22705000
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
       language: wasm/assemblyscript
       entities:
-        - Player
-        - Plot
+        - GamePlayer
+        - GamePlot
       abis:
         - name: GameEngine
           file: GameEngine\GameEngine.json
+      eventHandlers:
+        - event: WorldJoined(indexed address,indexed uint256,uint256)
+          handler: handleWorldJoined
+        - event: PlotPurchased(indexed address,indexed uint256,uint8,uint8,uint256)
+          handler: handlePlotPurchased
+      file: GameEngine\GameEngine.wasm
+  - kind: ethereum/contract
+    name: PlayerNFT
+    network: hydraTestnet
+    source:
+      address: "0x7Ef1976b1cCd5C5853D9B23b8B05026f13cD5D3a"
+      abi: PlayerNFT
+      startBlock: 22705000
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - PlayerNFT
+        - PlayerWorldStat
+      abis:
+        - name: PlayerNFT
+          file: PlayerNFT\PlayerNFT.json
+      eventHandlers:
+        - event: PlayerRegistered(indexed address,string,uint256)
+          handler: handlePlayerRegistered
+        - event: WorldUpdated(indexed address,uint256,uint256,uint256)
+          handler: handleWorldUpdated
+      file: PlayerNFT\PlayerNFT.wasm
+  - kind: ethereum/contract
+    name: GameWorldFactory
+    network: hydraTestnet
+    source:
+      address: "0xB83Ac8C5c46073Bcc957Bffe5EBD5AbfE2a91937"
+      abi: GameWorldFactory
+      startBlock: 22727190
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - GameWorld
+      abis:
+        - name: GameWorldFactory
+          file: GameWorldFactory\GameWorldFactory.json
+      eventHandlers:
+        - event: WorldCreated(indexed address,indexed uint256,string)
+          handler: handleWorldCreated
+      file: GameWorldFactory\GameWorldFactory.wasm
+templates:
+  - name: GameEngineTemplate
+    kind: ethereum/contract
+    network: hydraTestnet
+    source:
+      abi: GameEngine
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - GamePlayer
+        - GamePlot
+      abis:
+        - name: GameEngine
+          file: GameEngineTemplate\GameEngine.json
       eventHandlers:
         - event: WorldJoined(indexed address,indexed uint256,uint256)
           handler: handleWorldJoined

@@ -13,14 +13,12 @@ import { useParams } from "react-router-dom";
 import { ethers, ZeroAddress, type BigNumberish } from "ethers";
 import { CONTRACTS } from "../constants/addresses";
 import GameEngineABI from "../abis/GameEngineABI.json";
-import GameRegistryABI from "../abis/GameRegistryABI.json";
+import PlayerNFTABI from "../abis/PlayerNFTABI.json";
 
 const WorldPage: React.FC = () => {
 	const { id } = useParams<{ id: string }>();
 	const [resources, setResources] = useState<number[]>([0, 0, 0, 0, 0]);
-	const [plotOwners, setPlotOwners] = useState<string[][]>(
-		Array.from({ length: 10 }, () => Array(10).fill("")),
-	);
+	const [plotOwners, setPlotOwners] = useState<string[][] | null>(null);
 	const [usernameMap, setUsernameMap] = useState<Record<string, string>>({});
 	const [currentUser, setCurrentUser] = useState<string>("");
 	const [price, setPrice] = useState("...");
@@ -30,95 +28,110 @@ const WorldPage: React.FC = () => {
 		null,
 	);
 
-	const loadWorldData = useCallback(async () => {
-		if (!window.ethereum || !id) return;
+	const loadWorldData = useCallback(
+		async (onlyUpdateUnowned = false) => {
+			if (!window.ethereum || !id) return;
+			setLoading(true);
 
-		setLoading(true);
+			try {
+				const provider = new ethers.BrowserProvider(window.ethereum);
+				const signer = await provider.getSigner();
+				const address = await signer.getAddress();
+				setCurrentUser(address);
 
-		try {
-			const provider = new ethers.BrowserProvider(window.ethereum);
-			const signer = await provider.getSigner();
-			const address = await signer.getAddress();
-			setCurrentUser(address);
+				const game = new ethers.Contract(
+					CONTRACTS.gameEngineAddress,
+					GameEngineABI.abi,
+					provider,
+				);
 
-			const game = new ethers.Contract(
-				CONTRACTS.gameEngineAddress,
-				GameEngineABI.abi,
-				provider,
-			);
+				const playerNFT = new ethers.Contract(
+					CONTRACTS.playerNFTAddress,
+					PlayerNFTABI.abi,
+					provider,
+				);
 
-			const registry = new ethers.Contract(
-				CONTRACTS.gameRegistryAddress,
-				GameRegistryABI.abi,
-				provider,
-			);
+				// Always update resources and price for current player
+				const r = await game.getPlayerResources(id, address);
+				setResources(r.map((n: BigNumberish) => Number.parseInt(n.toString())));
 
-			const r = await game.getPlayerResources(id, address);
-			setResources(r.map((n: BigNumberish) => Number.parseInt(n.toString())));
+				const p = await game.getPlotPrice(id, address);
+				setPrice(p.toString());
 
-			const p = await game.getPlotPrice(id, address);
-			setPrice(p.toString());
+				const ownersFlat: string[] = await game.getAllPlotOwners(id);
+				const updatedOwners: string[][] = plotOwners
+					? [...plotOwners.map((row) => [...row])]
+					: [];
 
-			const ownersFlat: string[] = await game.getAllPlotOwners(id);
-			const owners: string[][] = [];
-			const usernames: Record<string, string> = {};
+				const usernames: Record<string, string> = {};
 
-			for (let x = 0; x < 10; x++) {
-				owners[x] = [];
-				for (let y = 0; y < 10; y++) {
-					const index = x * 10 + y;
-					const owner = ownersFlat[index].toLowerCase();
-					owners[x][y] = owner;
+				for (let x = 0; x < 10; x++) {
+					if (!updatedOwners[x]) updatedOwners[x] = [];
 
-					if (owner !== ZeroAddress.toLowerCase() && !usernames[owner]) {
-						try {
-							usernames[owner] = await registry.getUsername(owner);
-						} catch {
-							usernames[owner] = owner.slice(0, 6);
+					for (let y = 0; y < 10; y++) {
+						const index = x * 10 + y;
+						const newOwner = ownersFlat[index].toLowerCase();
+
+						const wasUnowned =
+							plotOwners?.[x]?.[y] === ZeroAddress.toLowerCase();
+
+						const shouldUpdate =
+							!onlyUpdateUnowned || wasUnowned || !plotOwners?.[x]?.[y];
+
+						if (shouldUpdate) {
+							updatedOwners[x][y] = newOwner;
+
+							if (
+								newOwner !== ZeroAddress.toLowerCase() &&
+								!usernames[newOwner]
+							) {
+								try {
+									const name = await playerNFT.getUsername(newOwner);
+									usernames[newOwner] = name;
+								} catch {
+									usernames[newOwner] = newOwner.slice(0, 6);
+								}
+							}
 						}
 					}
 				}
-			}
 
-			setUsernameMap(usernames);
-			setPlotOwners(owners);
-		} catch (err) {
-			toast({
-				title: "Error loading world",
-				description: "Check your connection or contract",
-				status: "error",
-				duration: 5000,
-				isClosable: true,
-			});
-		} finally {
-			setLoading(false);
-		}
-	}, [id, toast]);
+				setPlotOwners(updatedOwners);
+				setUsernameMap((prev) => ({ ...prev, ...usernames }));
+			} catch (err) {
+				toast({
+					title: "Error loading world",
+					description: "Check your connection or contract",
+					status: "error",
+					duration: 5000,
+					isClosable: true,
+				});
+			} finally {
+				setLoading(false);
+			}
+		},
+		[id, toast],
+	);
 
 	useEffect(() => {
 		loadWorldData();
 	}, [loadWorldData]);
 
-	const renderPlot = (x: number, y: number, owner: string) => {
+	const renderPlot = (x: number, y: number, owner: string | null) => {
+		const isLoading = loading || owner === null;
 		const isUnowned = owner === ZeroAddress.toLowerCase();
 		const isMine = owner === currentUser.toLowerCase();
 		const isBuyingThis = buyingPlot?.x === x && buyingPlot?.y === y;
 
 		const handleBuy = async () => {
 			if (!id || !currentUser) return;
-
 			setBuyingPlot({ x, y });
 
 			try {
 				const response = await fetch("http://localhost:3001/buy-plot", {
 					method: "POST",
 					headers: { "Content-Type": "application/json" },
-					body: JSON.stringify({
-						worldId: id,
-						player: currentUser,
-						x,
-						y,
-					}),
+					body: JSON.stringify({ worldId: id, player: currentUser, x, y }),
 				});
 
 				const result = await response.json();
@@ -132,6 +145,7 @@ const WorldPage: React.FC = () => {
 						isClosable: true,
 					});
 					await loadWorldData();
+					setBuyingPlot(null);
 				} else {
 					throw new Error(result.error || "Something went wrong");
 				}
@@ -143,20 +157,30 @@ const WorldPage: React.FC = () => {
 					duration: 5000,
 					isClosable: true,
 				});
-			} finally {
 				setBuyingPlot(null);
 			}
 		};
 
-		const bgColor = isUnowned ? "gray.100" : isMine ? "green.300" : "red.300";
-		const isDisabled = !!buyingPlot && !(isBuyingThis || isUnowned);
-		const content = isBuyingThis ? (
-			<Spinner size="xs" />
-		) : isUnowned ? (
-			"+"
-		) : (
-			usernameMap[owner]?.slice(0, 2).toUpperCase() || "X"
-		);
+		let bgColor = "gray.300";
+		let content: React.ReactNode = null;
+		let cursor = "default";
+		let title = "Loading...";
+
+		if (isLoading) {
+			bgColor = "gray.300";
+			content = null;
+		} else if (isBuyingThis) {
+			content = <Spinner size="xs" />;
+		} else if (isUnowned) {
+			bgColor = "gray.100";
+			content = "+";
+			cursor = "pointer";
+			title = `Buy plot (${x}, ${y})`;
+		} else {
+			bgColor = isMine ? "green.300" : "red.300";
+			content = usernameMap[owner]?.slice(0, 2).toUpperCase() || "X";
+			title = `Owned by ${usernameMap[owner] || owner.slice(0, 6)}`;
+		}
 
 		return (
 			<GridItem
@@ -170,14 +194,9 @@ const WorldPage: React.FC = () => {
 				display="flex"
 				alignItems="center"
 				justifyContent="center"
-				flexDirection="column"
-				cursor={isUnowned && !isDisabled ? "pointer" : "default"}
-				onClick={isUnowned && !isDisabled ? handleBuy : undefined}
-				title={
-					isUnowned
-						? `Buy plot (${x}, ${y})`
-						: `Owned by ${usernameMap[owner] || owner.slice(0, 6)}`
-				}
+				cursor={cursor}
+				onClick={!isLoading && isUnowned && !buyingPlot ? handleBuy : undefined}
+				title={title}
 			>
 				{content}
 			</GridItem>
@@ -192,7 +211,7 @@ const WorldPage: React.FC = () => {
 			</Text>
 			<VStack align="start" spacing={1}>
 				{resources.map((amount, idx) => (
-					<Text key={`resource-${amount}-${id}`}>
+					<Text key={`R${idx + 1}`}>
 						R{idx + 1}: {amount}
 					</Text>
 				))}
@@ -202,8 +221,10 @@ const WorldPage: React.FC = () => {
 				Plot Grid:
 			</Text>
 			<Grid templateColumns="repeat(10, 40px)" gap={1}>
-				{plotOwners.map((row, x) =>
-					row.map((owner, y) => renderPlot(x, y, owner)),
+				{Array.from({ length: 10 }).map((_, x) =>
+					Array.from({ length: 10 }).map((_, y) =>
+						renderPlot(x, y, plotOwners?.[x]?.[y] ?? null),
+					),
 				)}
 			</Grid>
 		</Box>

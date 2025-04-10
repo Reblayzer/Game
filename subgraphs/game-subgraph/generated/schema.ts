@@ -12,7 +12,7 @@ import {
   Int8,
 } from "@graphprotocol/graph-ts";
 
-export class Player extends Entity {
+export class GameWorld extends Entity {
   constructor(id: string) {
     super();
     this.set("id", Value.fromString(id));
@@ -20,22 +20,88 @@ export class Player extends Entity {
 
   save(): void {
     let id = this.get("id");
-    assert(id != null, "Cannot save Player entity without an ID");
+    assert(id != null, "Cannot save GameWorld entity without an ID");
     if (id) {
       assert(
         id.kind == ValueKind.STRING,
-        `Entities of type Player must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`,
+        `Entities of type GameWorld must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`,
       );
-      store.set("Player", id.toString(), this);
+      store.set("GameWorld", id.toString(), this);
     }
   }
 
-  static loadInBlock(id: string): Player | null {
-    return changetype<Player | null>(store.get_in_block("Player", id));
+  static loadInBlock(id: string): GameWorld | null {
+    return changetype<GameWorld | null>(store.get_in_block("GameWorld", id));
   }
 
-  static load(id: string): Player | null {
-    return changetype<Player | null>(store.get("Player", id));
+  static load(id: string): GameWorld | null {
+    return changetype<GameWorld | null>(store.get("GameWorld", id));
+  }
+
+  get id(): string {
+    let value = this.get("id");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toString();
+    }
+  }
+
+  set id(value: string) {
+    this.set("id", Value.fromString(value));
+  }
+
+  get name(): string {
+    let value = this.get("name");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toString();
+    }
+  }
+
+  set name(value: string) {
+    this.set("name", Value.fromString(value));
+  }
+
+  get createdAt(): BigInt {
+    let value = this.get("createdAt");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set createdAt(value: BigInt) {
+    this.set("createdAt", Value.fromBigInt(value));
+  }
+}
+
+export class GamePlayer extends Entity {
+  constructor(id: string) {
+    super();
+    this.set("id", Value.fromString(id));
+  }
+
+  save(): void {
+    let id = this.get("id");
+    assert(id != null, "Cannot save GamePlayer entity without an ID");
+    if (id) {
+      assert(
+        id.kind == ValueKind.STRING,
+        `Entities of type GamePlayer must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`,
+      );
+      store.set("GamePlayer", id.toString(), this);
+    }
+  }
+
+  static loadInBlock(id: string): GamePlayer | null {
+    return changetype<GamePlayer | null>(store.get_in_block("GamePlayer", id));
+  }
+
+  static load(id: string): GamePlayer | null {
+    return changetype<GamePlayer | null>(store.get("GamePlayer", id));
   }
 
   get id(): string {
@@ -91,7 +157,7 @@ export class Player extends Entity {
   }
 }
 
-export class Plot extends Entity {
+export class GamePlot extends Entity {
   constructor(id: string) {
     super();
     this.set("id", Value.fromString(id));
@@ -99,22 +165,22 @@ export class Plot extends Entity {
 
   save(): void {
     let id = this.get("id");
-    assert(id != null, "Cannot save Plot entity without an ID");
+    assert(id != null, "Cannot save GamePlot entity without an ID");
     if (id) {
       assert(
         id.kind == ValueKind.STRING,
-        `Entities of type Plot must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`,
+        `Entities of type GamePlot must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`,
       );
-      store.set("Plot", id.toString(), this);
+      store.set("GamePlot", id.toString(), this);
     }
   }
 
-  static loadInBlock(id: string): Plot | null {
-    return changetype<Plot | null>(store.get_in_block("Plot", id));
+  static loadInBlock(id: string): GamePlot | null {
+    return changetype<GamePlot | null>(store.get_in_block("GamePlot", id));
   }
 
-  static load(id: string): Plot | null {
-    return changetype<Plot | null>(store.get("Plot", id));
+  static load(id: string): GamePlot | null {
+    return changetype<GamePlot | null>(store.get("GamePlot", id));
   }
 
   get id(): string {
@@ -193,5 +259,217 @@ export class Plot extends Entity {
 
   set price(value: BigInt) {
     this.set("price", Value.fromBigInt(value));
+  }
+}
+
+export class PlayerNFT extends Entity {
+  constructor(id: string) {
+    super();
+    this.set("id", Value.fromString(id));
+  }
+
+  save(): void {
+    let id = this.get("id");
+    assert(id != null, "Cannot save PlayerNFT entity without an ID");
+    if (id) {
+      assert(
+        id.kind == ValueKind.STRING,
+        `Entities of type PlayerNFT must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`,
+      );
+      store.set("PlayerNFT", id.toString(), this);
+    }
+  }
+
+  static loadInBlock(id: string): PlayerNFT | null {
+    return changetype<PlayerNFT | null>(store.get_in_block("PlayerNFT", id));
+  }
+
+  static load(id: string): PlayerNFT | null {
+    return changetype<PlayerNFT | null>(store.get("PlayerNFT", id));
+  }
+
+  get id(): string {
+    let value = this.get("id");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toString();
+    }
+  }
+
+  set id(value: string) {
+    this.set("id", Value.fromString(value));
+  }
+
+  get tokenId(): BigInt {
+    let value = this.get("tokenId");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set tokenId(value: BigInt) {
+    this.set("tokenId", Value.fromBigInt(value));
+  }
+
+  get username(): string {
+    let value = this.get("username");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toString();
+    }
+  }
+
+  set username(value: string) {
+    this.set("username", Value.fromString(value));
+  }
+
+  get registeredAt(): BigInt {
+    let value = this.get("registeredAt");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set registeredAt(value: BigInt) {
+    this.set("registeredAt", Value.fromBigInt(value));
+  }
+
+  get worldStats(): PlayerWorldStatLoader {
+    return new PlayerWorldStatLoader(
+      "PlayerNFT",
+      this.get("id")!.toString(),
+      "worldStats",
+    );
+  }
+}
+
+export class PlayerWorldStat extends Entity {
+  constructor(id: string) {
+    super();
+    this.set("id", Value.fromString(id));
+  }
+
+  save(): void {
+    let id = this.get("id");
+    assert(id != null, "Cannot save PlayerWorldStat entity without an ID");
+    if (id) {
+      assert(
+        id.kind == ValueKind.STRING,
+        `Entities of type PlayerWorldStat must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`,
+      );
+      store.set("PlayerWorldStat", id.toString(), this);
+    }
+  }
+
+  static loadInBlock(id: string): PlayerWorldStat | null {
+    return changetype<PlayerWorldStat | null>(
+      store.get_in_block("PlayerWorldStat", id),
+    );
+  }
+
+  static load(id: string): PlayerWorldStat | null {
+    return changetype<PlayerWorldStat | null>(store.get("PlayerWorldStat", id));
+  }
+
+  get id(): string {
+    let value = this.get("id");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toString();
+    }
+  }
+
+  set id(value: string) {
+    this.set("id", Value.fromString(value));
+  }
+
+  get player(): string {
+    let value = this.get("player");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toString();
+    }
+  }
+
+  set player(value: string) {
+    this.set("player", Value.fromString(value));
+  }
+
+  get worldId(): BigInt {
+    let value = this.get("worldId");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set worldId(value: BigInt) {
+    this.set("worldId", Value.fromBigInt(value));
+  }
+
+  get plotsOwned(): i32 {
+    let value = this.get("plotsOwned");
+    if (!value || value.kind == ValueKind.NULL) {
+      return 0;
+    } else {
+      return value.toI32();
+    }
+  }
+
+  set plotsOwned(value: i32) {
+    this.set("plotsOwned", Value.fromI32(value));
+  }
+
+  get powerLevel(): i32 {
+    let value = this.get("powerLevel");
+    if (!value || value.kind == ValueKind.NULL) {
+      return 0;
+    } else {
+      return value.toI32();
+    }
+  }
+
+  set powerLevel(value: i32) {
+    this.set("powerLevel", Value.fromI32(value));
+  }
+
+  get updatedAt(): BigInt {
+    let value = this.get("updatedAt");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set updatedAt(value: BigInt) {
+    this.set("updatedAt", Value.fromBigInt(value));
+  }
+}
+
+export class PlayerWorldStatLoader extends Entity {
+  _entity: string;
+  _field: string;
+  _id: string;
+
+  constructor(entity: string, id: string, field: string) {
+    super();
+    this._entity = entity;
+    this._id = id;
+    this._field = field;
+  }
+
+  load(): PlayerWorldStat[] {
+    let value = store.loadRelated(this._entity, this._id, this._field);
+    return changetype<PlayerWorldStat[]>(value);
   }
 }

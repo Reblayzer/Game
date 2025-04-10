@@ -6,7 +6,7 @@ contract GameEngine {
     address public gasTreasury;
     bool public paused = false;
 
-    uint256 public constant JOIN_FEE = 10 ether; // 10 tHYDRA
+    uint256 public constant JOIN_FEE = 10 ether;
     uint256 public constant STARTING_RESOURCE = 10000;
     uint8 public constant GRID_SIZE = 10;
     uint256 public constant BASE_PRICE = 100;
@@ -23,7 +23,7 @@ contract GameEngine {
         bool joined;
         uint256 joinedAt;
         uint256 ownedPlots;
-        mapping(uint8 => uint256) resources; // R1–R5
+        mapping(uint8 => uint256) resources;
     }
 
     struct Plot {
@@ -32,9 +32,11 @@ contract GameEngine {
         uint8 y;
     }
 
-    mapping(address => mapping(uint256 => PlayerWorld)) internal playerWorlds; // player => worldId => info
+    mapping(address => mapping(uint256 => PlayerWorld)) internal playerWorlds;
     mapping(uint256 => mapping(uint8 => mapping(uint8 => Plot)))
-        public worldPlots; // worldId => x => y => Plot
+        public worldPlots;
+
+    mapping(address => bool) public whitelistedCallers;
 
     modifier onlyOwner() {
         require(msg.sender == owner, "Not the owner");
@@ -42,12 +44,17 @@ contract GameEngine {
     }
 
     modifier onlyGasTreasury() {
-        require(msg.sender == gasTreasury, "Only gas treasury can call");
+        require(msg.sender == gasTreasury, "Only gas treasury");
         _;
     }
 
     modifier notPaused() {
         require(!paused, "Game is paused");
+        _;
+    }
+
+    modifier onlyWhitelisted() {
+        require(whitelistedCallers[msg.sender], "Not whitelisted");
         _;
     }
 
@@ -63,14 +70,23 @@ contract GameEngine {
         uint8 y,
         uint256 price
     );
+    event CallerWhitelisted(address caller, bool status);
 
     constructor() {
         owner = msg.sender;
-        gasTreasury = msg.sender; // Default; can be updated
+        gasTreasury = msg.sender;
     }
 
     function setGasTreasury(address _gasTreasury) external onlyOwner {
         gasTreasury = _gasTreasury;
+    }
+
+    function setWhitelistedCaller(
+        address caller,
+        bool status
+    ) external onlyOwner {
+        whitelistedCallers[caller] = status;
+        emit CallerWhitelisted(caller, status);
     }
 
     function pauseGame() external onlyOwner {
@@ -154,8 +170,8 @@ contract GameEngine {
         address player,
         uint8 x,
         uint8 y
-    ) external notPaused onlyGasTreasury {
-        require(x < GRID_SIZE && y < GRID_SIZE, "Invalid plot coords");
+    ) external notPaused onlyWhitelisted {
+        require(x < GRID_SIZE && y < GRID_SIZE, "Invalid coords");
 
         PlayerWorld storage pw = playerWorlds[player][worldId];
         require(pw.joined, "Not in world");
@@ -168,7 +184,6 @@ contract GameEngine {
         }
 
         worldPlots[worldId][x][y] = Plot({owner: player, x: x, y: y});
-
         pw.ownedPlots++;
 
         emit PlotPurchased(player, worldId, x, y, price);

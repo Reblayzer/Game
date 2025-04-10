@@ -11,8 +11,45 @@ their game actions.This should be clearly explained in UI.
 🔄 Upgrade Order Recommendation
 Step	Feature	Complexity	Immediate Gain
 ✅ 1	Non-transfer tokens	Low	High security - DONE
-✅ 2	Pre-whitelisted game contracts	Low	Smoother UX - 
-✅ 4	Subgraph for GameEngine	Medium	⚡ Performance - IN PROGRESS
+✅ 2	Pre-whitelisted game contracts	Low	Smoother UX - DONE
+✅ 4	Subgraph for GameEngine	Medium	⚡ Performance - DONE
 ✅ 3	Local wallet (later)	Medium	MetaMask-free UX - 
 ✅ 6	NFTs as players/items	Medium-High	Modular data layer - 
 ✅ 5	Factory contracts	High	Modularity & scaling - 
+
+---
+
+npx graph codegen
+npx graph build
+npx graph deploy --node http://localhost:8020 monolyth/game-subgraph
+
+
+http://localhost:8000/subgraphs/name/monolyth/game-subgraph
+
+{
+  gamePlayers {
+    id
+    worldId
+    plotsOwned
+    joinedAt
+  }
+}
+
+{
+  playerNFTs {
+    id
+    tokenId
+    username
+    registeredAt
+    worldStats {
+      worldId
+      plotsOwned
+      powerLevel
+      updatedAt
+    }
+  }
+}
+
+
+
+FIX RENDERING WORLDPAGE

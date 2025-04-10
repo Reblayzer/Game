@@ -49,12 +49,12 @@ app.post("/buy-plot", (req, res) => {
   });
 });
 
-// Fallback to index.html for SPA routes
+// Fallback to index.html for SPA routing
 app.get("/*", (req, res) => {
   res.sendFile(path.join(__dirname, "frontend/build/index.html"));
 });
 
 const PORT = 3001;
 app.listen(PORT, () => {
-  console.log(`🚀 Unified app and API running at http://localhost:${PORT}`);
+  console.log(`🚀 Backend running at http://localhost:${PORT}`);
 });
