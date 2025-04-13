@@ -10,156 +10,207 @@ import {
 } from "@chakra-ui/react";
 import { useCallback, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { ethers, ZeroAddress, type BigNumberish } from "ethers";
+import { ethers, ZeroAddress } from "ethers";
 import { CONTRACTS } from "../constants/addresses";
-import GameEngineABI from "../abis/GameEngineABI.json";
-import PlayerNFTABI from "../abis/PlayerNFTABI.json";
+
+const SUBGRAPH_URL =
+	"http://localhost:8000/subgraphs/name/monolyth/game-subgraph";
+
+const GRID_SIZE = 10;
+
+type Plot = {
+	id: string;
+	x: number;
+	y: number;
+	price: string;
+	owner: {
+		id: string;
+	};
+};
+
+type Player = {
+	id: string;
+	username: string;
+};
+
+type Resource = {
+	id: string;
+	r1: string;
+	r2: string;
+	r3: string;
+	r4: string;
+	r5: string;
+	plotPrice: string;
+};
 
 const WorldPage: React.FC = () => {
 	const { id } = useParams<{ id: string }>();
-	const [resources, setResources] = useState<number[]>([0, 0, 0, 0, 0]);
+	const toast = useToast();
+
 	const [plotOwners, setPlotOwners] = useState<string[][] | null>(null);
 	const [usernameMap, setUsernameMap] = useState<Record<string, string>>({});
+	const [resource, setResource] = useState<Resource | null>(null);
 	const [currentUser, setCurrentUser] = useState<string>("");
-	const [price, setPrice] = useState("...");
-	const toast = useToast();
 	const [loading, setLoading] = useState(true);
-	const [buyingPlot, setBuyingPlot] = useState<{ x: number; y: number } | null>(
-		null,
-	);
 
-	const loadWorldData = useCallback(
-		async (onlyUpdateUnowned = false) => {
-			if (!window.ethereum || !id) return;
+	const fetchWorldData = useCallback(
+		async (playerOverride?: string) => {
+			const player = playerOverride || currentUser;
+			if (!id || !player) return;
 			setLoading(true);
 
 			try {
-				const provider = new ethers.BrowserProvider(window.ethereum);
-				const signer = await provider.getSigner();
-				const address = await signer.getAddress();
-				setCurrentUser(address);
-
-				const game = new ethers.Contract(
-					CONTRACTS.gameEngineAddress,
-					GameEngineABI.abi,
-					provider,
-				);
-
-				const playerNFT = new ethers.Contract(
-					CONTRACTS.playerNFTAddress,
-					PlayerNFTABI.abi,
-					provider,
-				);
-
-				// Always update resources and price for current player
-				const r = await game.getPlayerResources(id, address);
-				setResources(r.map((n: BigNumberish) => Number.parseInt(n.toString())));
-
-				const p = await game.getPlotPrice(id, address);
-				setPrice(p.toString());
-
-				const ownersFlat: string[] = await game.getAllPlotOwners(id);
-				const updatedOwners: string[][] = plotOwners
-					? [...plotOwners.map((row) => [...row])]
-					: [];
-
-				const usernames: Record<string, string> = {};
-
-				for (let x = 0; x < 10; x++) {
-					if (!updatedOwners[x]) updatedOwners[x] = [];
-
-					for (let y = 0; y < 10; y++) {
-						const index = x * 10 + y;
-						const newOwner = ownersFlat[index].toLowerCase();
-
-						const wasUnowned =
-							plotOwners?.[x]?.[y] === ZeroAddress.toLowerCase();
-
-						const shouldUpdate =
-							!onlyUpdateUnowned || wasUnowned || !plotOwners?.[x]?.[y];
-
-						if (shouldUpdate) {
-							updatedOwners[x][y] = newOwner;
-
-							if (
-								newOwner !== ZeroAddress.toLowerCase() &&
-								!usernames[newOwner]
-							) {
-								try {
-									const name = await playerNFT.getUsername(newOwner);
-									usernames[newOwner] = name;
-								} catch {
-									usernames[newOwner] = newOwner.slice(0, 6);
-								}
+				const res = await fetch(SUBGRAPH_URL, {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify({
+						query: `
+						query GetWorldData($worldId: BigInt!, $playerId: String!) {
+							gamePlots(where: { worldId: $worldId }) {
+								id
+								x
+								y
+								price
+								owner { id }
+							}
+							playerNFTs {
+								id
+								username
+							}
+							playerResource(id: $playerId) {
+								id
+								r1
+								r2
+								r3
+								r4
+								r5
+								plotPrice
 							}
 						}
+					`,
+						variables: {
+							worldId: id,
+							playerId: `${player.toLowerCase()}-${id}`,
+						},
+					}),
+				});
+
+				const json = await res.json();
+
+				if (json.errors) {
+					console.error("GraphQL errors:", json.errors);
+					throw new Error("Subgraph query failed");
+				}
+
+				const plots: Plot[] = json.data.gamePlots;
+				const players: Player[] = json.data.playerNFTs;
+				const resourceData: Resource | null = json.data.playerResource;
+
+				const ownerMap: string[][] = Array(GRID_SIZE)
+					.fill(null)
+					.map(() => Array(GRID_SIZE).fill(ZeroAddress.toLowerCase()));
+
+				for (const plot of plots) {
+					const { x, y, owner } = plot;
+					if (x < GRID_SIZE && y < GRID_SIZE) {
+						ownerMap[x][y] = owner.id.split("-")[0];
 					}
 				}
 
-				setPlotOwners(updatedOwners);
-				setUsernameMap((prev) => ({ ...prev, ...usernames }));
+				const nameMap: Record<string, string> = {};
+				for (const p of players) {
+					nameMap[p.id.toLowerCase()] = p.username;
+				}
+
+				setUsernameMap(nameMap);
+				setPlotOwners(ownerMap);
+				setResource(resourceData ?? null);
 			} catch (err) {
 				toast({
-					title: "Error loading world",
-					description: "Check your connection or contract",
+					title: "Failed to load world data",
+					description: "Check Subgraph connection",
 					status: "error",
 					duration: 5000,
 					isClosable: true,
 				});
+				console.error("World fetch failed:", err);
 			} finally {
 				setLoading(false);
 			}
 		},
-		[id, toast],
+		[id, currentUser, toast], // ✅ include all referenced deps
 	);
 
 	useEffect(() => {
-		loadWorldData();
-	}, [loadWorldData]);
+		if (!window.ethereum || !id) return;
+
+		const getUser = async () => {
+			const provider = new ethers.BrowserProvider(window.ethereum);
+			const signer = await provider.getSigner();
+			const address = await signer.getAddress();
+			setCurrentUser(address.toLowerCase());
+			await fetchWorldData(address.toLowerCase());
+		};
+
+		getUser().catch(console.error);
+	}, [id, fetchWorldData]);
+
+	const handleBuyPlot = async (x: number, y: number) => {
+		if (!id || !currentUser) return;
+
+		const toastId = toast({
+			title: "Buying Plot...",
+			description: `Buying plot (${x}, ${y})...`,
+			status: "info",
+			duration: 5000,
+			isClosable: true,
+		});
+
+		try {
+			const response = await fetch("http://localhost:3001/buy-plot", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({
+					worldId: id,
+					player: currentUser,
+					x,
+					y,
+				}),
+			});
+
+			const json = await response.json();
+
+			if (!response.ok) {
+				throw new Error(json.error || "Plot purchase failed");
+			}
+
+			toast.update(toastId, {
+				title: "Success 🎉",
+				description: json.message,
+				status: "success",
+				duration: 5000,
+				isClosable: true,
+			});
+
+			await fetchWorldData(currentUser); // refresh UI
+		} catch (err: unknown) {
+			console.error("Buy plot error", err);
+			toast.update(toastId, {
+				title: "Transaction Failed",
+				description: (err as Error).message || "Unknown error",
+				status: "error",
+				duration: 5000,
+				isClosable: true,
+			});
+		}
+	};
 
 	const renderPlot = (x: number, y: number, owner: string | null) => {
 		const isLoading = loading || owner === null;
 		const isUnowned = owner === ZeroAddress.toLowerCase();
 		const isMine = owner === currentUser.toLowerCase();
-		const isBuyingThis = buyingPlot?.x === x && buyingPlot?.y === y;
-
-		const handleBuy = async () => {
-			if (!id || !currentUser) return;
-			setBuyingPlot({ x, y });
-
-			try {
-				const response = await fetch("http://localhost:3001/buy-plot", {
-					method: "POST",
-					headers: { "Content-Type": "application/json" },
-					body: JSON.stringify({ worldId: id, player: currentUser, x, y }),
-				});
-
-				const result = await response.json();
-
-				if (response.ok) {
-					toast({
-						title: "✅ Plot Purchased",
-						description: `Plot (${x}, ${y}) now owned by you`,
-						status: "success",
-						duration: 4000,
-						isClosable: true,
-					});
-					await loadWorldData();
-					setBuyingPlot(null);
-				} else {
-					throw new Error(result.error || "Something went wrong");
-				}
-			} catch (err: unknown) {
-				toast({
-					title: "❌ Purchase Failed",
-					description: err instanceof Error ? err.message : "Unknown error",
-					status: "error",
-					duration: 5000,
-					isClosable: true,
-				});
-				setBuyingPlot(null);
-			}
-		};
 
 		let bgColor = "gray.300";
 		let content: React.ReactNode = null;
@@ -167,9 +218,6 @@ const WorldPage: React.FC = () => {
 		let title = "Loading...";
 
 		if (isLoading) {
-			bgColor = "gray.300";
-			content = null;
-		} else if (isBuyingThis) {
 			content = <Spinner size="xs" />;
 		} else if (isUnowned) {
 			bgColor = "gray.100";
@@ -195,8 +243,12 @@ const WorldPage: React.FC = () => {
 				alignItems="center"
 				justifyContent="center"
 				cursor={cursor}
-				onClick={!isLoading && isUnowned && !buyingPlot ? handleBuy : undefined}
 				title={title}
+				onClick={() => {
+					if (isUnowned && !loading) {
+						handleBuyPlot(x, y);
+					}
+				}}
 			>
 				{content}
 			</GridItem>
@@ -206,23 +258,32 @@ const WorldPage: React.FC = () => {
 	return (
 		<Box borderWidth="1px" borderRadius="md" p={6}>
 			<Heading size="md">🌍 World {id}</Heading>
+
 			<Text mt={4} mb={2}>
 				Resource Balance:
 			</Text>
 			<VStack align="start" spacing={1}>
-				{resources.map((amount, idx) => (
-					<Text key={`R${idx + 1}`}>
-						R{idx + 1}: {amount}
-					</Text>
-				))}
+				{resource ? (
+					<>
+						<Text>R1: {resource.r1}</Text>
+						<Text>R2: {resource.r2}</Text>
+						<Text>R3: {resource.r3}</Text>
+						<Text>R4: {resource.r4}</Text>
+						<Text>R5: {resource.r5}</Text>
+					</>
+				) : (
+					<Text fontStyle="italic">Loading...</Text>
+				)}
 			</VStack>
-			<Text mt={4}>Next Plot Price: {price}</Text>
+
+			<Text mt={4}>Next Plot Price: {resource?.plotPrice ?? "..."}</Text>
+
 			<Text mt={6} mb={2}>
 				Plot Grid:
 			</Text>
 			<Grid templateColumns="repeat(10, 40px)" gap={1}>
-				{Array.from({ length: 10 }).map((_, x) =>
-					Array.from({ length: 10 }).map((_, y) =>
+				{Array.from({ length: GRID_SIZE }).map((_, x) =>
+					Array.from({ length: GRID_SIZE }).map((_, y) =>
 						renderPlot(x, y, plotOwners?.[x]?.[y] ?? null),
 					),
 				)}

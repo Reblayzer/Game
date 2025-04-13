@@ -35,7 +35,6 @@ contract GameEngine {
     mapping(address => mapping(uint256 => PlayerWorld)) internal playerWorlds;
     mapping(uint256 => mapping(uint8 => mapping(uint8 => Plot)))
         public worldPlots;
-
     mapping(address => bool) public whitelistedCallers;
 
     modifier onlyOwner() {
@@ -58,6 +57,7 @@ contract GameEngine {
         _;
     }
 
+    // --- Events ---
     event WorldJoined(
         address indexed player,
         uint256 indexed worldId,
@@ -71,6 +71,16 @@ contract GameEngine {
         uint256 price
     );
     event CallerWhitelisted(address caller, bool status);
+    event ResourcesUpdated(
+        address indexed player,
+        uint256 indexed worldId,
+        uint256[5] newResources
+    );
+    event PlotPriceUpdated(
+        address indexed player,
+        uint256 indexed worldId,
+        uint256 newPrice
+    );
 
     constructor() {
         owner = msg.sender;
@@ -111,6 +121,22 @@ contract GameEngine {
         }
 
         emit WorldJoined(msg.sender, worldId, block.timestamp);
+        emit ResourcesUpdated(
+            msg.sender,
+            worldId,
+            [
+                pw.resources[0],
+                pw.resources[1],
+                pw.resources[2],
+                pw.resources[3],
+                pw.resources[4]
+            ]
+        );
+        emit PlotPriceUpdated(
+            msg.sender,
+            worldId,
+            getPlotPrice(worldId, msg.sender)
+        );
     }
 
     function hasJoined(
@@ -187,6 +213,19 @@ contract GameEngine {
         pw.ownedPlots++;
 
         emit PlotPurchased(player, worldId, x, y, price);
+
+        emit ResourcesUpdated(
+            player,
+            worldId,
+            [
+                pw.resources[0],
+                pw.resources[1],
+                pw.resources[2],
+                pw.resources[3],
+                pw.resources[4]
+            ]
+        );
+        emit PlotPriceUpdated(player, worldId, getPlotPrice(worldId, player));
     }
 
     function withdraw() external onlyOwner {

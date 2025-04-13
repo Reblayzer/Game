@@ -8,9 +8,9 @@ dataSources:
     name: GameEngine
     network: hydraTestnet
     source:
-      address: "0x4741e73941A1C3dd7326Eb86c4484e73D89DE46f"
+      address: "0x3FD47Aa00237e644D7C03B6090076Dc5d58A69CC"
       abi: GameEngine
-      startBlock: 22705000
+      startBlock: 22901141
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -26,6 +26,10 @@ dataSources:
           handler: handleWorldJoined
         - event: PlotPurchased(indexed address,indexed uint256,uint8,uint8,uint256)
           handler: handlePlotPurchased
+        - event: ResourcesUpdated(indexed address,indexed uint256,uint256[5])
+          handler: handleResourcesUpdated
+        - event: PlotPriceUpdated(indexed address,indexed uint256,uint256)
+          handler: handlePlotPriceUpdated
       file: GameEngine\GameEngine.wasm
   - kind: ethereum/contract
     name: PlayerNFT

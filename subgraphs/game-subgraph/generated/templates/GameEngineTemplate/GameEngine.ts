@@ -32,6 +32,32 @@ export class CallerWhitelisted__Params {
   }
 }
 
+export class PlotPriceUpdated extends ethereum.Event {
+  get params(): PlotPriceUpdated__Params {
+    return new PlotPriceUpdated__Params(this);
+  }
+}
+
+export class PlotPriceUpdated__Params {
+  _event: PlotPriceUpdated;
+
+  constructor(event: PlotPriceUpdated) {
+    this._event = event;
+  }
+
+  get player(): Address {
+    return this._event.parameters[0].value.toAddress();
+  }
+
+  get worldId(): BigInt {
+    return this._event.parameters[1].value.toBigInt();
+  }
+
+  get newPrice(): BigInt {
+    return this._event.parameters[2].value.toBigInt();
+  }
+}
+
 export class PlotPurchased extends ethereum.Event {
   get params(): PlotPurchased__Params {
     return new PlotPurchased__Params(this);
@@ -63,6 +89,32 @@ export class PlotPurchased__Params {
 
   get price(): BigInt {
     return this._event.parameters[4].value.toBigInt();
+  }
+}
+
+export class ResourcesUpdated extends ethereum.Event {
+  get params(): ResourcesUpdated__Params {
+    return new ResourcesUpdated__Params(this);
+  }
+}
+
+export class ResourcesUpdated__Params {
+  _event: ResourcesUpdated;
+
+  constructor(event: ResourcesUpdated) {
+    this._event = event;
+  }
+
+  get player(): Address {
+    return this._event.parameters[0].value.toAddress();
+  }
+
+  get worldId(): BigInt {
+    return this._event.parameters[1].value.toBigInt();
+  }
+
+  get newResources(): Array<BigInt> {
+    return this._event.parameters[2].value.toBigIntArray();
   }
 }
 

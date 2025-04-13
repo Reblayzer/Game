@@ -1,3 +1,5 @@
+# GameEngine
+
 type GameWorld @entity(immutable: true) {
 	id: ID! # address of the GameEngine contract
 	name: String!
@@ -19,6 +21,21 @@ type GamePlot @entity(immutable: true) {
 	owner: GamePlayer!
 	price: BigInt!
 }
+
+type PlayerResource @entity(immutable: true) {
+	id: ID! # address-worldId
+	player: PlayerNFT!
+	worldId: BigInt!
+	r1: BigInt!
+	r2: BigInt!
+	r3: BigInt!
+	r4: BigInt!
+	r5: BigInt!
+	plotPrice: BigInt!
+	updatedAt: BigInt!
+}
+
+# playerNFT
 
 type PlayerNFT @entity(immutable: true) {
 	id: ID! # player address

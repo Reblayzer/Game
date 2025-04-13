@@ -262,6 +262,165 @@ export class GamePlot extends Entity {
   }
 }
 
+export class PlayerResource extends Entity {
+  constructor(id: string) {
+    super();
+    this.set("id", Value.fromString(id));
+  }
+
+  save(): void {
+    let id = this.get("id");
+    assert(id != null, "Cannot save PlayerResource entity without an ID");
+    if (id) {
+      assert(
+        id.kind == ValueKind.STRING,
+        `Entities of type PlayerResource must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`,
+      );
+      store.set("PlayerResource", id.toString(), this);
+    }
+  }
+
+  static loadInBlock(id: string): PlayerResource | null {
+    return changetype<PlayerResource | null>(
+      store.get_in_block("PlayerResource", id),
+    );
+  }
+
+  static load(id: string): PlayerResource | null {
+    return changetype<PlayerResource | null>(store.get("PlayerResource", id));
+  }
+
+  get id(): string {
+    let value = this.get("id");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toString();
+    }
+  }
+
+  set id(value: string) {
+    this.set("id", Value.fromString(value));
+  }
+
+  get player(): string {
+    let value = this.get("player");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toString();
+    }
+  }
+
+  set player(value: string) {
+    this.set("player", Value.fromString(value));
+  }
+
+  get worldId(): BigInt {
+    let value = this.get("worldId");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set worldId(value: BigInt) {
+    this.set("worldId", Value.fromBigInt(value));
+  }
+
+  get r1(): BigInt {
+    let value = this.get("r1");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set r1(value: BigInt) {
+    this.set("r1", Value.fromBigInt(value));
+  }
+
+  get r2(): BigInt {
+    let value = this.get("r2");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set r2(value: BigInt) {
+    this.set("r2", Value.fromBigInt(value));
+  }
+
+  get r3(): BigInt {
+    let value = this.get("r3");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set r3(value: BigInt) {
+    this.set("r3", Value.fromBigInt(value));
+  }
+
+  get r4(): BigInt {
+    let value = this.get("r4");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set r4(value: BigInt) {
+    this.set("r4", Value.fromBigInt(value));
+  }
+
+  get r5(): BigInt {
+    let value = this.get("r5");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set r5(value: BigInt) {
+    this.set("r5", Value.fromBigInt(value));
+  }
+
+  get plotPrice(): BigInt {
+    let value = this.get("plotPrice");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set plotPrice(value: BigInt) {
+    this.set("plotPrice", Value.fromBigInt(value));
+  }
+
+  get updatedAt(): BigInt {
+    let value = this.get("updatedAt");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set updatedAt(value: BigInt) {
+    this.set("updatedAt", Value.fromBigInt(value));
+  }
+}
+
 export class PlayerNFT extends Entity {
   constructor(id: string) {
     super();

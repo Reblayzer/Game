@@ -11,10 +11,11 @@
     "plot": "npx tsx scripts/buyPlot-cli.ts",
     "start:frontend": "cd frontend && npm start",
     "reset": "npx hardhat clean && rm -rf cache artifacts",
-    "deploy:engine": "npx hardhat run scripts/deploy-engine.js --network hydraTestnet",
-    "deploy:playernft": "npx hardhat run scripts/deploy-playernft.js --network hydraTestnet",
-    "deploy:factory": "npx hardhat run scripts/deployFactory.js --network hydraTestnet",
-    "wlist:engine": "npx hardhat run scripts/whitelist-engine.js --network hydraTestnet"
+    "deploy:engine": "npx hardhat compile && npx hardhat run scripts/deploy-engine.js --network hydraTestnet",
+    "deploy:playernft": "npx hardhat compile && npx hardhat run scripts/deploy-playernft.js --network hydraTestnet",
+    "deploy:factory": "npx hardhat compile && npx hardhat run scripts/deployFactory.js --network hydraTestnet",
+    "wlist:engine": "npx hardhat compile && npx hardhat run scripts/whitelist-engine.js --network hydraTestnet",
+    "wlist:deployer": "npx hardhat compile && npx hardhat run scripts/whitelist-deployer.js --network hydraTestnet"
   },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.2.3",
@@ -27,6 +28,7 @@
   "dependencies": {
     "@openzeppelin/contracts": "4.8.3",
     "cors": "^2.8.5",
-    "express": "^4.18.2"
+    "express": "^4.18.2",
+    "graphql-request": "^7.1.2"
   }
 }
