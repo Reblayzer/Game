@@ -1,0 +1,114 @@
+deployerWalletAddress: "0xacd4595199345e43a09ed83b067c90b3afcc2cb4"
+personalWalletAddress: "0x078267C2B4f88822a59Ba17972ddC5006032fAd1"
+
+Fix bug on home page if user cancels connection with wallet.
+
+Spamming or abuse	
+Someone could join, pay 10 tHYDRA, then call many transactions and drain the gas pool. 
+Solution: track per-player usage, limit txs, or expire access.
+
+Trust model
+Players are trusting that this 10 tHYDRA isn't refundable and will only be used to fuel
+their game actions.This should be clearly explained in UI.
+
+---
+
+npx graph codegen
+npx graph build
+npx graph deploy --node http://localhost:8020 monolyth/game-subgraph
+
+graph remove monolyth/game-subgraph -g http://localhost:8020
+graph create monolyth/game-subgraph --node http://localhost:8020
+
+
+http://localhost:8000/subgraphs/name/monolyth/game-subgraph
+
+#Query All GamePlayers
+
+{
+  gamePlayers {
+    id
+    worldId
+    plotsOwned
+    joinedAt
+  }
+}
+
+# Query All PlayerNFTs (without worldStats)
+
+{
+  playerNFTs {
+    id
+    tokenId
+    username
+    registeredAt
+  }
+}
+
+# Query All PlayerStats
+
+{
+  playerStats(id:"yomama") {
+    id
+    worldId
+    plotsOwned
+    powerLevel
+    updatedAt
+    player {
+      id
+      username
+    }
+  }
+}
+
+# Query for UI (Plots, Resources, Stats, Usernames)
+
+query GetWorldData($worldId: BigInt!, $playerId: String!) {
+  gamePlots(where: { worldId: $worldId }) {
+    id
+    x
+    y
+    price
+    owner {
+      id
+    }
+  }
+
+  playerNFTs {
+    id
+    username
+  }
+
+  playerResource(id: $playerId) {
+    id
+    r1
+    r2
+    r3
+    r4
+    r5
+    plotPrice
+  }
+
+  playerStats(id: $playerId) {
+    plotsOwned
+    powerLevel
+  }
+}
+
+# Get All Plots In The World
+
+query GetPlotOwners($worldId: BigInt!) {
+  gamePlots(where: { worldId: $worldId }, first: 1000) {
+    x
+    y
+    owner {
+      id
+    }
+  }
+}
+
+
+
+
+
+FIX RENDERING WORLDPAGE

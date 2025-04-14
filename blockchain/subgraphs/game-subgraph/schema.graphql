@@ -1,0 +1,54 @@
+# GameEngine
+
+type GameWorld @entity(immutable: true) {
+	id: ID! # address of the GameEngine contract
+	name: String!
+	createdAt: BigInt!
+}
+
+type GamePlayer @entity(immutable: false) {
+	id: ID! # address + worldId
+	worldId: BigInt!
+	plotsOwned: Int!
+	joinedAt: BigInt!
+}
+
+type GamePlot @entity(immutable: false) {
+	id: ID! # worldId-x-y
+	worldId: BigInt!
+	x: Int!
+	y: Int!
+	owner: GamePlayer!
+	price: BigInt!
+}
+
+type PlayerResource @entity(immutable: false) {
+	id: ID! # address-worldId
+	player: PlayerNFT!
+	worldId: BigInt!
+	r1: BigInt!
+	r2: BigInt!
+	r3: BigInt!
+	r4: BigInt!
+	r5: BigInt!
+	plotPrice: BigInt!
+	updatedAt: BigInt!
+}
+
+type PlayerStats @entity(immutable: false) {
+	id: ID! # address-worldId
+	player: PlayerNFT!
+	worldId: BigInt!
+	plotsOwned: Int!
+	powerLevel: Int!
+	updatedAt: BigInt!
+}
+
+# PlayerNFT
+
+type PlayerNFT @entity(immutable: true) {
+	id: ID! # player address
+	tokenId: BigInt!
+	username: String!
+	registeredAt: BigInt!
+}

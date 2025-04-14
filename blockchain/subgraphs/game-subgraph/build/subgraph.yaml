@@ -1,0 +1,99 @@
+specVersion: 0.0.4
+description: Monolyth Game Subgraph
+repository: https://github.com/Reblayzer/Game
+schema:
+  file: schema.graphql
+dataSources:
+  - kind: ethereum/contract
+    name: GameEngine
+    network: hydraTestnet
+    source:
+      address: "0xeC4c6c3cEa94516f17401f252f3953e8Bb0A6F37"
+      abi: GameEngine
+      startBlock: 23240241
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - GamePlayer
+        - GamePlot
+        - PlayerResource
+        - PlayerStats
+      abis:
+        - name: GameEngine
+          file: GameEngine\GameEngine.json
+      eventHandlers:
+        - event: WorldJoined(indexed address,indexed uint256,uint256)
+          handler: handleWorldJoined
+        - event: PlotPurchased(indexed address,indexed uint256,uint8,uint8,uint256)
+          handler: handlePlotPurchased
+        - event: ResourcesUpdated(indexed address,indexed uint256,uint256[5])
+          handler: handleResourcesUpdated
+        - event: PlotPriceUpdated(indexed address,indexed uint256,uint256)
+          handler: handlePlotPriceUpdated
+        - event: StatsUpdated(indexed address,indexed uint256,uint256,uint256)
+          handler: handleStatsUpdated
+      file: GameEngine\GameEngine.wasm
+  - kind: ethereum/contract
+    name: PlayerNFT
+    network: hydraTestnet
+    source:
+      address: "0x4a1f8CE058e28Da81AAbb239f66e7945318B6d60"
+      abi: PlayerNFT
+      startBlock: 23240311
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - PlayerNFT
+      abis:
+        - name: PlayerNFT
+          file: PlayerNFT\PlayerNFT.json
+      eventHandlers:
+        - event: PlayerRegistered(indexed address,string,uint256)
+          handler: handlePlayerRegistered
+      file: PlayerNFT\PlayerNFT.wasm
+  - kind: ethereum/contract
+    name: GameWorldFactory
+    network: hydraTestnet
+    source:
+      address: "0xdAbd36e3F7CaF526b4245f7aCb2Fb91f3b20D1eC"
+      abi: GameWorldFactory
+      startBlock: 23240362
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - GameWorld
+      abis:
+        - name: GameWorldFactory
+          file: GameWorldFactory\GameWorldFactory.json
+      eventHandlers:
+        - event: WorldCreated(indexed address,indexed uint256,string)
+          handler: handleWorldCreated
+      file: GameWorldFactory\GameWorldFactory.wasm
+templates:
+  - name: GameEngineTemplate
+    kind: ethereum/contract
+    network: hydraTestnet
+    source:
+      abi: GameEngine
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - GamePlayer
+        - GamePlot
+      abis:
+        - name: GameEngine
+          file: GameEngineTemplate\GameEngine.json
+      eventHandlers:
+        - event: WorldJoined(indexed address,indexed uint256,uint256)
+          handler: handleWorldJoined
+        - event: PlotPurchased(indexed address,indexed uint256,uint8,uint8,uint256)
+          handler: handlePlotPurchased
+      file: GameEngine\GameEngine.wasm

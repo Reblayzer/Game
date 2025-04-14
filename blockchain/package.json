@@ -1,0 +1,33 @@
+{
+  "name": "hydra-token",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "dev": "cd frontend && npm run start",
+    "build": "cd frontend && npm run build",
+    "build:watch": "cd frontend && npm run build -- --watch",
+    "serve": "nodemon server.js",
+    "plot": "npx tsx scripts/buyPlot-cli.ts",
+    "start:frontend": "cd frontend && npm start",
+    "reset": "npx hardhat clean && rm -rf cache artifacts",
+    "deploy:engine": "npx hardhat compile && npx hardhat run scripts/deploy-engine.js --network hydraTestnet",
+    "deploy:playernft": "npx hardhat compile && npx hardhat run scripts/deploy-playernft.js --network hydraTestnet",
+    "deploy:factory": "npx hardhat compile && npx hardhat run scripts/deployFactory.js --network hydraTestnet"
+  },
+  "devDependencies": {
+    "@nomiclabs/hardhat-ethers": "^2.2.3",
+    "concurrently": "^9.1.2",
+    "dotenv": "^16.4.7",
+    "ethers": "^5.7.2",
+    "hardhat": "^2.22.19",
+    "nodemon": "^3.1.9"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "4.8.3",
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "graphql-request": "^7.1.2"
+  }
+}
