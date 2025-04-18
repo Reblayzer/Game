@@ -20,21 +20,29 @@ public class CameraController : MonoBehaviour
     public float maxVerticalAngle = 80f;
 
     private Vector2 rotationVelocity;
+    private Vector3 targetPosition;
+
     private Camera cam;
 
     void Start()
     {
         cam = GetComponentInChildren<Camera>();
-
         if (target == null)
         {
             GameObject pivot = GameObject.Find("CameraPivot");
-            if (pivot != null)
-                target = pivot.transform;
+            if (pivot != null) target = pivot.transform;
         }
+
+        if (target != null)
+            targetPosition = target.position;
 
         distance = Mathf.Clamp(distance, minDistance, maxDistance);
         UpdateCameraPosition();
+    }
+
+    public void SetTargetPosition(Vector3 newPosition)
+    {
+        targetPosition = newPosition;
     }
 
     void LateUpdate()

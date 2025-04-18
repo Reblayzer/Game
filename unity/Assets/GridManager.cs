@@ -7,10 +7,16 @@ using TMPro;
 public class CuboidType
 {
     public string name;
+    private string plotID;
     public GameObject prefab;
     public int length = 1;
     public int width = 1;
     public int height = 1;
+
+    public void SetPlotID(string id)
+    {
+        plotID = id;
+    }
 }
 
 public class GridManager : MonoBehaviour
@@ -26,9 +32,13 @@ public class GridManager : MonoBehaviour
 
     [Header("UI References")]
     public GameObject buildingButtonsPanel;
-    public GameObject selectedCuboidUIPanel;
-    public TMP_Text selectedCuboidInfoText;
-    public Button upgradeButton;
+    [SerializeField] private GameObject selectedCuboidUIPanel;
+    [SerializeField] private TMP_Text selectedCuboidInfoText;
+    [SerializeField] private Button upgradeButton;
+
+    public GameObject SelectedCuboidUIPanel => selectedCuboidUIPanel;
+    public TMP_Text SelectedCuboidInfoText => selectedCuboidInfoText;
+    public Button UpgradeButton => upgradeButton;
 
     [Header("Audio")]
     public AudioClip placementSound;
@@ -41,6 +51,7 @@ public class GridManager : MonoBehaviour
     private string lastGhostName = "";
     private bool hasSelectedCuboid = false;
     public int selectedIndex = 0;
+    public bool IsActive { get; private set; }
 
     public bool CanPlace => buildingButtonsPanel != null
                              && buildingButtonsPanel.activeSelf
@@ -48,6 +59,16 @@ public class GridManager : MonoBehaviour
 
     void Start()
     {
+        if (gameObject.GetComponent<BoxCollider>() == null)
+        {
+            BoxCollider col = gameObject.AddComponent<BoxCollider>();
+            col.size = new Vector3(gridSize, 0.1f, gridSize);
+            col.center = new Vector3(0, 0, 0);
+        }
+
+        if (buildingButtonsPanel != null)
+            buildingButtonsPanel.SetActive(true);
+
         float offset = gridSize / 2f - 0.5f;
 
         occupiedTiles = new bool[gridSize, gridSize];
@@ -57,8 +78,9 @@ public class GridManager : MonoBehaviour
         {
             for (int z = 0; z < gridSize; z++)
             {
-                Vector3 position = new Vector3(x - offset, 0, z - offset);
+                Vector3 position = transform.position + new Vector3(x - offset, 0, z - offset);
                 GameObject tileObj = Instantiate(tilePrefab, position, Quaternion.identity, transform);
+                tileObj.layer = LayerMask.NameToLayer("Tile");
 
                 Tile tileScript = tileObj.AddComponent<Tile>();
                 tileScript.Init(new Vector2Int(x, z), this);
@@ -68,15 +90,34 @@ public class GridManager : MonoBehaviour
 
         audioSource = GetComponent<AudioSource>();
 
-        // Hide UI panel at start
         if (selectedCuboidUIPanel != null)
         {
             selectedCuboidUIPanel.SetActive(false);
         }
     }
 
+    public void SetActive(bool state)
+    {
+        IsActive = state;
+
+        if (!state)
+        {
+            ClearHighlights();
+            hasSelectedCuboid = false;
+
+            if (selectedCuboidUIPanel != null)
+                selectedCuboidUIPanel.SetActive(false);
+
+            if (upgradeButton != null)
+                upgradeButton.gameObject.SetActive(false);
+        }
+    }
+
     void Update()
     {
+        if (!IsActive)
+            return;
+
         if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
         {
             ClearHighlights();
@@ -92,12 +133,18 @@ public class GridManager : MonoBehaviour
         }
 
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-        if (Physics.Raycast(ray, out RaycastHit hit))
+        if (Physics.Raycast(ray, out RaycastHit hit, 100f, LayerMask.GetMask("Tile")))
         {
             Tile tile = hit.collider.GetComponent<Tile>();
-            if (tile != null)
+            if (tile != null && tile.GridManager == this)
             {
                 bool isValid = HighlightTiles(tile.gridPosition.x, tile.gridPosition.y);
+
+                if (Input.GetMouseButtonDown(0))
+                {
+                    TryPlaceCuboidAt(tile.gridPosition.x, tile.gridPosition.y);
+                }
+
                 ShowGhost(tile.gridPosition.x, tile.gridPosition.y, cuboidTypes[selectedIndex], isRotated, isValid);
             }
         }
@@ -130,14 +177,13 @@ public class GridManager : MonoBehaviour
             {
                 if (x >= gridSize || z >= gridSize || occupiedTiles[x, z])
                 {
-                    Debug.Log("Can't place cuboid: space is occupied or out of bounds.");
                     return;
                 }
             }
         }
 
         float offset = gridSize / 2f - 0.5f;
-        Vector3 spawnPos = new Vector3(
+        Vector3 spawnPos = transform.position + new Vector3(
             startX + length / 2f - 0.5f - offset,
             current.height / 2f,
             startZ + width / 2f - 0.5f - offset
@@ -148,9 +194,9 @@ public class GridManager : MonoBehaviour
 
         SelectableCuboid selectable = placed.AddComponent<SelectableCuboid>();
         selectable.cuboidName = current.name;
-        selectable.infoPanel = selectedCuboidUIPanel;
-        selectable.infoDisplay = selectedCuboidInfoText;
-        selectable.upgradeButton = upgradeButton;
+        selectable.infoPanel = SelectedCuboidUIPanel;
+        selectable.infoDisplay = SelectedCuboidInfoText;
+        selectable.upgradeButton = UpgradeButton;
 
         for (int x = startX; x < startX + length; x++)
         {
@@ -159,6 +205,8 @@ public class GridManager : MonoBehaviour
                 occupiedTiles[x, z] = true;
             }
         }
+
+        ClearHighlights();
 
         if (placementSound != null && audioSource != null)
         {
@@ -245,7 +293,7 @@ public class GridManager : MonoBehaviour
         int width = rotated ? current.length : current.width;
         float offset = gridSize / 2f - 0.5f;
 
-        Vector3 ghostPos = new Vector3(
+        Vector3 ghostPos = transform.position + new Vector3(
             startX + length / 2f - 0.5f - offset,
             current.height / 2f,
             startZ + width / 2f - 0.5f - offset
@@ -286,5 +334,10 @@ public class GridManager : MonoBehaviour
         {
             collider.enabled = false;
         }
+    }
+
+    public void SetPlotID(string id)
+    {
+        Debug.Log($"Assigned Plot ID: {id}");
     }
 }

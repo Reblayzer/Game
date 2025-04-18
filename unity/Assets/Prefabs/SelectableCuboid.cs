@@ -1,53 +1,48 @@
 using UnityEngine;
-using TMPro;
 using UnityEngine.UI;
+using TMPro;
 
 public class SelectableCuboid : MonoBehaviour
 {
-    [Header("Cuboid Data")]
     public string cuboidName;
-    public int level = 1;
-
-    [Header("UI References")]
     public GameObject infoPanel;
     public TMP_Text infoDisplay;
     public Button upgradeButton;
 
-    private void Start()
-    {
-        // Hide UI at start
-        if (infoPanel != null)
-            infoPanel.SetActive(false);
+    private int level = 1;
 
-        // Optional Debug
-        Debug.Log($"{name} initialized with level {level}");
-    }
-
-    private void OnMouseDown()
+    void OnMouseDown()
     {
-        Debug.Log($"{cuboidName} selected");
+        // Fallback: Get UI refs from the active grid
+        if (infoPanel == null || infoDisplay == null || upgradeButton == null)
+        {
+            GridManager activeGM = FindFirstObjectByType<BuildingButtonSelector>()?.GetActiveGridManager();
+            if (activeGM != null)
+            {
+                infoPanel = activeGM.SelectedCuboidUIPanel;
+                infoDisplay = activeGM.SelectedCuboidInfoText;
+                upgradeButton = activeGM.UpgradeButton;
+            }
+        }
 
         if (infoPanel == null || infoDisplay == null || upgradeButton == null)
         {
-            Debug.LogError("❌ UI references are still missing on click!");
+            Debug.LogError("❌ Missing UI references on cuboid selection.");
             return;
         }
 
-        // Show panel
         infoPanel.SetActive(true);
+        upgradeButton.gameObject.SetActive(true);
 
-        // Update text
-        infoDisplay.text = $"{cuboidName}\nLevel: {level}";
+        infoDisplay.text = $"{cuboidName} (Level {level})";
 
-        // Clear old listeners and add this one
         upgradeButton.onClick.RemoveAllListeners();
-        upgradeButton.onClick.AddListener(OnUpgradeClicked);
-    }
+        upgradeButton.onClick.AddListener(() =>
+        {
+            level++;
+            infoDisplay.text = $"{cuboidName} (Level {level})";
+        });
 
-    private void OnUpgradeClicked()
-    {
-        level++;
-        infoDisplay.text = $"{cuboidName}\nLevel: {level}";
-        Debug.Log($"{cuboidName} upgraded to Level {level}");
+        Debug.Log($"✅ {cuboidName} selected and upgrade UI ready.");
     }
 }

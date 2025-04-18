@@ -3,42 +3,36 @@ using UnityEngine;
 public class Tile : MonoBehaviour
 {
     public Vector2Int gridPosition;
-    public GridManager gridManager;
+    public GridManager GridManager { get; private set; }
 
     private Renderer tileRenderer;
     private Color originalColor;
 
-    public void Init(Vector2Int pos, GridManager manager)
+    public void Init(Vector2Int position, GridManager manager)
     {
-        gridPosition = pos;
-        gridManager = manager;
+        gridPosition = position;
+        GridManager = manager;
 
         tileRenderer = GetComponent<Renderer>();
-        originalColor = tileRenderer.material.color;
-    }
-
-    private void OnMouseEnter()
-    {
-        gridManager.HighlightTiles(gridPosition.x, gridPosition.y);
-    }
-
-    private void OnMouseExit()
-    {
-        gridManager.ClearHighlights();
-    }
-
-    private void OnMouseDown()
-    {
-        gridManager.TryPlaceCuboidAt(gridPosition.x, gridPosition.y);
+        if (tileRenderer != null)
+        {
+            originalColor = tileRenderer.material.color;
+        }
     }
 
     public void SetHighlight(Color color)
     {
-        tileRenderer.material.color = color;
+        if (tileRenderer != null)
+        {
+            tileRenderer.material.color = color;
+        }
     }
 
     public void ResetColor()
     {
-        tileRenderer.material.color = originalColor;
+        if (tileRenderer != null)
+        {
+            tileRenderer.material.color = originalColor;
+        }
     }
 }

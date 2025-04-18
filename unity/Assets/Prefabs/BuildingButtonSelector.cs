@@ -7,8 +7,8 @@ public class BuildingButtonSelector : MonoBehaviour
     [System.Serializable]
     public class BuildingButton
     {
-        public GameObject rootObject;       // The full button GameObject
-        public Image backgroundImage;       // For visual highlighting
+        public GameObject rootObject;
+        public Image backgroundImage;
     }
 
     public List<BuildingButton> buildingButtons;
@@ -16,34 +16,47 @@ public class BuildingButtonSelector : MonoBehaviour
     public Color normalColor = Color.white;
 
     private int currentIndex = -1;
+    private GridManager activeGridManager;
 
     public int CurrentIndex => currentIndex;
 
+    public void SetActiveGridManager(GridManager gm)
+    {
+        if (activeGridManager != null)
+            activeGridManager.SetActive(false);
+
+        activeGridManager = gm;
+        activeGridManager.SetActive(true);
+    }
+
+    public GridManager GetActiveGridManager() => activeGridManager;
+
     public void SelectByIndex(int index)
     {
-        // Clicked same again? → Deselect
         if (index == currentIndex)
         {
             ClearSelection();
             return;
         }
 
-        // Apply colors
         for (int i = 0; i < buildingButtons.Count; i++)
         {
-            var button = buildingButtons[i];
-            if (button != null && button.backgroundImage != null)
+            if (buildingButtons[i] != null && buildingButtons[i].backgroundImage != null)
             {
-                button.backgroundImage.color = (i == index) ? selectedColor : normalColor;
+                buildingButtons[i].backgroundImage.color = (i == index) ? selectedColor : normalColor;
             }
         }
 
         currentIndex = index;
 
-        // Notify GridManager
-        var gm = FindFirstObjectByType<GridManager>();
-        if (gm != null)
-            gm.SetSelectedCuboid(index);
+        if (activeGridManager != null)
+        {
+            activeGridManager.SetSelectedCuboid(index);
+        }
+        else
+        {
+            Debug.LogWarning("No active GridManager assigned.");
+        }
     }
 
     public void ClearSelection()
@@ -56,8 +69,9 @@ public class BuildingButtonSelector : MonoBehaviour
 
         currentIndex = -1;
 
-        var gm = FindFirstObjectByType<GridManager>();
-        if (gm != null)
-            gm.ClearCuboidSelection();
+        if (activeGridManager != null)
+        {
+            activeGridManager.ClearCuboidSelection();
+        }
     }
 }
