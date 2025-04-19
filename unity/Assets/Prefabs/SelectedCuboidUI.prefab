@@ -89,7 +89,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &2699962461688286979
 RectTransform:
   m_ObjectHideFlags: 0
@@ -227,6 +227,10 @@ PrefabInstance:
     - target: {fileID: 6465650586351914346, guid: 25b91be1c4167e14fa8a411e6162a8ff, type: 3}
       propertyPath: m_Name
       value: UpgradeButton
+      objectReference: {fileID: 0}
+    - target: {fileID: 6465650586351914346, guid: 25b91be1c4167e14fa8a411e6162a8ff, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
