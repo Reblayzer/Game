@@ -6,7 +6,7 @@ public class CameraController : MonoBehaviour
     public Transform target;
 
     [Header("Zoom")]
-    public float distance = 15f;
+    public float distance = 30f;
     public float zoomSpeed = 10f;
     public float minDistance = 5f;
     public float maxDistance = 30f;

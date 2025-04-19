@@ -4,6 +4,8 @@ public class PlotManager : MonoBehaviour
 {
     public GameObject gridManagerPrefab;
     public BuildingButtonSelector buildingSelector;
+    public Transform cameraPivot;
+    public Transform cameraRig;
     public int plotRows = 3;
     public int plotCols = 3;
     public float plotSpacing = 0.5f; // adjustable space between plots
@@ -37,6 +39,10 @@ public class PlotManager : MonoBehaviour
                 if (x == 1 && y == 1)
                 {
                     buildingSelector.SetActiveGridManager(gm);
+                    if (cameraPivot != null)
+                    {
+                        cameraPivot.position = new Vector3(-3.75f, 0f, -3.75f);
+                    }
                 }
             }
         }
