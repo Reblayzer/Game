@@ -1,49 +1,67 @@
+using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
+using TMPro;
 
 public class PlotManager : MonoBehaviour
 {
+    [Header("Prefabs & References")]
     public GameObject gridManagerPrefab;
     public BuildingButtonSelector buildingSelector;
     public Transform cameraPivot;
     public Transform cameraRig;
+
+    [Header("Grid Layout Settings")]
     public int plotRows = 3;
     public int plotCols = 3;
-    public float plotSpacing = 0.5f; // adjustable space between plots
-    public Vector2Int tilesPerPlot = new Vector2Int(7, 7); // each plot is 7x7 tiles
+    public float plotSpacing = 0.5f;
 
-    private void Start()
+    [Header("Shared UI References")]
+    public GameObject selectedCuboidUIPanel;
+    public TMP_Text selectedCuboidInfoText;
+    public Button upgradeButton;
+
+    private List<GridManager> plots = new List<GridManager>();
+
+    void Start()
     {
         GeneratePlots();
+
+        // Center camera pivot on the middle plot
+        Vector2Int centerPlot = new Vector2Int(plotRows / 2, plotCols / 2);
+        GridManager centerManager = plots[centerPlot.x * plotCols + centerPlot.y];
+
+        cameraPivot.position = centerManager.transform.position;
+        cameraRig.position = new Vector3(0, cameraRig.position.y, -30f);
+
+        buildingSelector.SetActiveGridManager(centerManager);
+
+        Debug.Log($"🎯 Initialized with center plot: {centerManager.name}");
     }
 
-    void GeneratePlots()
+    private void GeneratePlots()
     {
-        Vector2 centerOffset = new Vector2(plotCols / 2f, plotRows / 2f);
+        float gridSize = 7f; // Adjust if your GridManager prefab size is different
+        float spacing = gridSize + plotSpacing;
 
-        for (int x = 0; x < plotCols; x++)
+        for (int row = 0; row < plotRows; row++)
         {
-            for (int y = 0; y < plotRows; y++)
+            for (int col = 0; col < plotCols; col++)
             {
-                Vector3 worldPosition = new Vector3(
-                    (x - centerOffset.x) * (tilesPerPlot.x + plotSpacing),
+                Vector3 position = new Vector3(
+                    (row - plotRows / 2) * spacing,
                     0,
-                    (y - centerOffset.y) * (tilesPerPlot.y + plotSpacing)
+                    (col - plotCols / 2) * spacing
                 );
 
-                GameObject plot = Instantiate(gridManagerPrefab, worldPosition, Quaternion.identity, transform);
+                GameObject gridGO = Instantiate(gridManagerPrefab, position, Quaternion.identity, transform);
+                GridManager grid = gridGO.GetComponent<GridManager>();
 
-                GridManager gm = plot.GetComponent<GridManager>();
-                gm.SetPlotID($"{x},{y}");
+                gridGO.name = $"GridManager({row},{col})";
+                grid.SetPlotID($"{row},{col}");
+                grid.SetUIReferences(selectedCuboidUIPanel, selectedCuboidInfoText, upgradeButton);
 
-                // Set the center plot as the one the UI controls
-                if (x == 1 && y == 1)
-                {
-                    buildingSelector.SetActiveGridManager(gm);
-                    if (cameraPivot != null)
-                    {
-                        cameraPivot.position = new Vector3(-3.75f, 0f, -3.75f);
-                    }
-                }
+                plots.Add(grid);
             }
         }
     }

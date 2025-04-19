@@ -27,18 +27,20 @@ public class BuildingButtonSelector : MonoBehaviour
 
         activeGridManager = gm;
         activeGridManager.SetActive(true);
+
+        // Reapply current selection if valid
+        if (currentIndex >= 0 && currentIndex < buildingButtons.Count)
+        {
+            activeGridManager.SetSelectedCuboid(currentIndex);
+        }
     }
+
 
     public GridManager GetActiveGridManager() => activeGridManager;
 
     public void SelectByIndex(int index)
     {
-        if (index == currentIndex)
-        {
-            ClearSelection();
-            return;
-        }
-
+        // Always update the UI
         for (int i = 0; i < buildingButtons.Count; i++)
         {
             if (buildingButtons[i] != null && buildingButtons[i].backgroundImage != null)
@@ -51,7 +53,7 @@ public class BuildingButtonSelector : MonoBehaviour
 
         if (activeGridManager != null)
         {
-            activeGridManager.SetSelectedCuboid(index);
+            activeGridManager.SetSelectedCuboid(index); // 🔁 Always set the selected cuboid
         }
         else
         {
