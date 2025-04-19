@@ -12,7 +12,6 @@ GameObject:
   - component: {fileID: 4862153326363602251}
   - component: {fileID: 3065222547823757922}
   - component: {fileID: 5605865075959577810}
-  - component: {fileID: 2868611511534769886}
   m_Layer: 0
   m_Name: Cuboid_3x1.5x3
   m_TagString: Untagged
@@ -109,20 +108,3 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &2868611511534769886
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8814042518244966010}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e4c26d023be7e5445a1f927a646eaac6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  cuboidName: 
-  level: 1
-  infoPanel: {fileID: 0}
-  infoDisplay: {fileID: 0}
-  upgradeButton: {fileID: 0}
