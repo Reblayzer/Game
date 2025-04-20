@@ -19,6 +19,11 @@ public class PlotManager : MonoBehaviour
     public int plotCols = 3;
     public float plotSpacing = 0.5f;
 
+    [Header("Plot Type Distribution")]
+    public int abandonedPlotCount = 1;
+    public int voidPlotCount = 1;
+
+
     [Header("Shared UI References")]
     public GameObject selectedCuboidUIPanel;
     public TMP_Text selectedCuboidInfoText;
@@ -30,34 +35,42 @@ public class PlotManager : MonoBehaviour
     {
         Instance = this;
         GeneratePlots();
-        StartCoroutine(InitializeAfterTilesReady());
     }
 
-    private IEnumerator InitializeAfterTilesReady()
+    private IEnumerator InitializeAfterTilesReady(GridManager selectedPlot)
     {
-        yield return null; // Wait one frame to ensure all GridManagers have run Start()
+        yield return new WaitUntil(() => selectedPlot != null && selectedPlot.IsInitialized);
 
-        Vector2Int centerPlot = new Vector2Int(plotRows / 2, plotCols / 2);
-        GridManager centerManager = plots[centerPlot.x * plotCols + centerPlot.y];
-
-        cameraPivot.position = centerManager.transform.position;
+        cameraPivot.position = selectedPlot.transform.position;
         cameraRig.position = new Vector3(0, cameraRig.position.y, -30f);
 
-        buildingSelector.SetActiveGridManager(centerManager);
+        buildingSelector.SetActiveGridManager(selectedPlot);
 
-        Debug.Log($"🎯 Initialized with center plot: {centerManager.name}");
+        Debug.Log($"🎯 Initialized with random normal plot: {selectedPlot.name}");
     }
 
     private void GeneratePlots()
     {
         float gridSize = 7f;
         float spacing = gridSize + plotSpacing;
-        Vector2Int center = new Vector2Int(plotRows / 2, plotCols / 2);
+        int totalPlots = plotRows * plotCols;
 
+        // Step 1: Generate list of all indices and shuffle
+        List<int> allIndices = new List<int>();
+        for (int i = 0; i < totalPlots; i++) allIndices.Add(i);
+        allIndices.Shuffle();
+
+        // Step 2: Choose indices for Abandoned and Void
+        HashSet<int> abandonedIndices = new HashSet<int>(allIndices.GetRange(0, Mathf.Min(abandonedPlotCount, totalPlots)));
+        HashSet<int> voidIndices = new HashSet<int>(allIndices.GetRange(abandonedPlotCount, Mathf.Min(voidPlotCount, totalPlots - abandonedPlotCount)));
+
+        // Step 3: Create plots and assign types
+        plots.Clear();
         for (int row = 0; row < plotRows; row++)
         {
             for (int col = 0; col < plotCols; col++)
             {
+                int flatIndex = row * plotCols + col;
                 Vector3 position = new Vector3(
                     (row - plotRows / 2) * spacing,
                     0,
@@ -70,24 +83,74 @@ public class PlotManager : MonoBehaviour
                 gridGO.name = $"GridManager({row},{col})";
                 grid.SetPlotID($"{row},{col}");
                 grid.SetUIReferences(selectedCuboidUIPanel, selectedCuboidInfoText, upgradeButton);
-
-                // 🔷 NEW: Set BuildingButtonSelector reference
                 grid.SetButtonSelector(buildingSelector);
 
-                plots.Add(grid);
-
-                // Only highlight green if it's not the center plot
-                if (!(row == center.x && col == center.y))
+                // Assign plot type and highlight accordingly
+                if (voidIndices.Contains(flatIndex))
                 {
+                    grid.plotType = PlotType.Void;
+                    StartCoroutine(HighlightWhenReady(grid, buildingSelector.voidPlotColor));
+                }
+                else if (abandonedIndices.Contains(flatIndex))
+                {
+                    grid.plotType = PlotType.Abandoned;
+                    StartCoroutine(HighlightWhenReady(grid, buildingSelector.abandonedPlotColor));
+                }
+                else
+                {
+                    grid.plotType = PlotType.Normal;
                     StartCoroutine(HighlightWhenReady(grid, buildingSelector.normalTileColor));
                 }
+
+                plots.Add(grid);
             }
+        }
+
+        // Step 4: Pick a random normal plot and set it as the active one
+        List<GridManager> normalPlots = plots.FindAll(p => p.plotType == PlotType.Normal);
+        if (normalPlots.Count > 0)
+        {
+            GridManager randomNormal = normalPlots[Random.Range(0, normalPlots.Count)];
+            StartCoroutine(InitializeAfterTilesReady(randomNormal));
+        }
+        else
+        {
+            Debug.LogWarning("⚠️ No Normal plots available to select!");
         }
     }
 
-    private IEnumerator HighlightWhenReady(GridManager grid, Color color)
+    private IEnumerator HighlightWhenReady(GridManager grid, Color fallbackColor)
     {
         yield return new WaitUntil(() => grid.IsInitialized);
-        grid.HighlightPlot(color);
+
+        // 🧠 Ensure we're using plotType-specific color AFTER initialization
+        Color highlightColor = fallbackColor;
+
+        if (grid.plotType == PlotType.Abandoned)
+            highlightColor = buildingSelector.abandonedPlotColor;
+        else if (grid.plotType == PlotType.Void)
+            highlightColor = buildingSelector.voidPlotColor;
+        else if (grid == buildingSelector.GetActiveGridManager())
+            highlightColor = buildingSelector.selectedTileColor;
+        else
+            highlightColor = buildingSelector.normalTileColor;
+
+        grid.HighlightPlot(highlightColor);
+    }
+}
+
+public static class ListExtensions
+{
+    private static System.Random rng = new System.Random();
+
+    public static void Shuffle<T>(this IList<T> list)
+    {
+        int n = list.Count;
+        while (n > 1)
+        {
+            n--;
+            int k = rng.Next(n + 1);
+            (list[n], list[k]) = (list[k], list[n]);
+        }
     }
 }

@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using TMPro;
 
@@ -15,11 +16,17 @@ public class BuildingButtonSelector : MonoBehaviour
 
     public List<BuildingButton> buildingButtons;
 
+    [Header("Special Buttons")]
+    public BuildingButton bridgeButton;
+
+
     [Header("Panel Buttons Colors")]
     public Color normalButtonColor;
     public Color selectedButtonColor;
 
     [Header("Tile Colors")]
+    public Color abandonedPlotColor;
+    public Color voidPlotColor;
     public Color normalTileColor;
     public Color selectedTileColor;
     public Color ghostCanPlaceColor;
@@ -29,9 +36,15 @@ public class BuildingButtonSelector : MonoBehaviour
     public TMP_Text plotLabel;
     private int currentIndex = -1;
     private GridManager activeGridManager;
+    private GridManager currentlyHoveredPlot;
 
     public bool IsInEditMode { get; private set; }
     public int CurrentIndex => currentIndex;
+
+    void Update()
+    {
+        HandlePlotHover();
+    }
 
     public void SetActiveGridManager(GridManager gm)
     {
@@ -53,7 +66,7 @@ public class BuildingButtonSelector : MonoBehaviour
             if (plot != activeGridManager)
             {
                 plot.SetActive(false);
-                plot.HighlightPlot(normalTileColor);
+                RestorePlotBaseColor(plot);
             }
         }
 
@@ -63,8 +76,24 @@ public class BuildingButtonSelector : MonoBehaviour
         if (plotLabel != null)
             plotLabel.text = $"Selected Plot: {gm.gameObject.name}";
 
+        UpdatePanelButtonsVisibility();
+
         if (currentIndex >= 0 && currentIndex < buildingButtons.Count)
             activeGridManager.SetSelectedCuboid(currentIndex);
+    }
+
+    private void UpdatePanelButtonsVisibility()
+    {
+        bool isVoid = activeGridManager != null && activeGridManager.plotType == PlotType.Void;
+
+        foreach (var button in buildingButtons)
+        {
+            if (button?.rootObject != null)
+                button.rootObject.SetActive(!isVoid);
+        }
+
+        if (bridgeButton?.rootObject != null)
+            bridgeButton.rootObject.SetActive(isVoid);
     }
 
     public void SelectByIndex(int index)
@@ -110,5 +139,65 @@ public class BuildingButtonSelector : MonoBehaviour
 
         if (activeGridManager != null)
             activeGridManager.SetEditMode(state);
+    }
+
+    private void HandlePlotHover()
+    {
+        if (EventSystem.current.IsPointerOverGameObject())
+            return;
+
+        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        if (Physics.Raycast(ray, out RaycastHit hit, 100f, LayerMask.GetMask("Plot")))
+        {
+            GridManager hovered = hit.collider.GetComponentInParent<GridManager>();
+            GridManager selected = GetActiveGridManager();
+
+            if (hovered != null)
+            {
+                if (currentlyHoveredPlot != null && currentlyHoveredPlot != hovered)
+                    RestorePlotBaseColor(currentlyHoveredPlot); // Always restore old
+
+                if (hovered != selected)
+                {
+                    currentlyHoveredPlot = hovered;
+                    currentlyHoveredPlot.HighlightPlot(hoverHighlightPlot);
+                }
+                else
+                {
+                    currentlyHoveredPlot = null; // Stop tracking if hovering selected
+                }
+
+                return;
+            }
+        }
+
+        // If we're not hovering any plot
+        if (currentlyHoveredPlot != null)
+        {
+            RestorePlotBaseColor(currentlyHoveredPlot);
+            currentlyHoveredPlot = null;
+        }
+    }
+
+    private void RestorePlotBaseColor(GridManager plot)
+    {
+        if (plot == GetActiveGridManager())
+        {
+            plot.HighlightPlot(selectedTileColor);
+            return;
+        }
+
+        switch (plot.plotType)
+        {
+            case PlotType.Abandoned:
+                plot.HighlightPlot(abandonedPlotColor);
+                break;
+            case PlotType.Void:
+                plot.HighlightPlot(voidPlotColor);
+                break;
+            default:
+                plot.HighlightPlot(normalTileColor);
+                break;
+        }
     }
 }

@@ -19,6 +19,13 @@ public class CuboidType
     }
 }
 
+public enum PlotType
+{
+    Normal,
+    Abandoned,
+    Void
+}
+
 public class GridManager : MonoBehaviour
 {
     [Header("Grid Settings")]
@@ -57,10 +64,12 @@ public class GridManager : MonoBehaviour
     private bool isEditMode = false;
     public int selectedIndex = 0;
     public bool IsActive { get; private set; }
+    public PlotType plotType = PlotType.Normal;
 
     public bool CanPlace => buildingButtonsPanel != null
-                             && buildingButtonsPanel.activeSelf
-                             && hasSelectedCuboid;
+                        && buildingButtonsPanel.activeSelf
+                        && hasSelectedCuboid
+                        && plotType == PlotType.Normal; // ⛔ Only Normal plots allow placement
 
     void Start()
     {

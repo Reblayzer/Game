@@ -24,7 +24,7 @@ public class PlotSelector : MonoBehaviour
             return;
 
           var toggle = FindFirstObjectByType<BuildingButtonToggle>();
-          if (toggle != null && toggle.targetPanel.activeSelf)
+          if (toggle != null && toggle.IsVisible())
             toggle.ToggleButtons();
 
           buttonSelector.SetActiveGridManager(gm);

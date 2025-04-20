@@ -2,8 +2,9 @@ using UnityEngine;
 
 public class BuildingButtonToggle : MonoBehaviour
 {
-    [Tooltip("Drag the Panel that contains the building buttons (e.g. Mining Drill, Tall Building, Warehouse)")]
-    public GameObject targetPanel;
+    [Tooltip("Panels")]
+    public GameObject normalPanel;
+    public GameObject voidPanel;
 
     [Tooltip("Reference to the BuildingButtonSelector script")]
     public BuildingButtonSelector buildingButtonSelector;
@@ -12,23 +13,42 @@ public class BuildingButtonToggle : MonoBehaviour
 
     void Start()
     {
-        if (targetPanel != null)
-            targetPanel.SetActive(false);
+        if (normalPanel != null)
+            normalPanel.SetActive(false);
+
+        if (voidPanel != null)
+            voidPanel.SetActive(false);
+    }
+
+    public bool IsVisible()
+    {
+        return isVisible;
     }
 
     public void ToggleButtons()
     {
-        if (targetPanel == null) return;
+        if (normalPanel == null || voidPanel == null) return;
 
         isVisible = !isVisible;
-        targetPanel.SetActive(isVisible);
+
+        GridManager current = buildingButtonSelector.GetActiveGridManager();
+
+        // Hide both panels first
+        normalPanel.SetActive(false);
+        voidPanel.SetActive(false);
+
+        if (isVisible)
+        {
+            if (current.plotType == PlotType.Void)
+                voidPanel.SetActive(true);
+            else
+                normalPanel.SetActive(true);
+        }
 
         if (buildingButtonSelector != null)
         {
             buildingButtonSelector.ToggleEditMode(isVisible);
 
-            // ✅ Also hide cuboid info when toggling into edit mode
-            GridManager current = buildingButtonSelector.GetActiveGridManager();
             if (current != null)
             {
                 current.HideCuboidInfo();
@@ -38,14 +58,15 @@ public class BuildingButtonToggle : MonoBehaviour
 
     public void HidePanel()
     {
-        if (targetPanel != null && isVisible)
+        if (!isVisible) return;
+
+        isVisible = false;
+        normalPanel.SetActive(false);
+        voidPanel.SetActive(false);
+
+        if (buildingButtonSelector != null)
         {
-            isVisible = false;
-            targetPanel.SetActive(false);
-            if (buildingButtonSelector != null)
-            {
-                buildingButtonSelector.ToggleEditMode(false);
-            }
+            buildingButtonSelector.ToggleEditMode(false);
         }
     }
 }
