@@ -5,21 +5,29 @@ public class BuildingButtonToggle : MonoBehaviour
     [Tooltip("Drag the Panel that contains the building buttons (e.g. Mining Drill, Tall Building, Warehouse)")]
     public GameObject targetPanel;
 
+    [Tooltip("Reference to the BuildingButtonSelector script")]
+    public BuildingButtonSelector buildingButtonSelector;
+
     private bool isVisible = false;
 
     void Start()
     {
-        // Ensure the panel is hidden when the game starts
         if (targetPanel != null)
             targetPanel.SetActive(false);
     }
 
     public void ToggleButtons()
     {
-        if (targetPanel == null)
+        if (targetPanel == null || buildingButtonSelector == null)
         {
-            Debug.LogWarning("BuildingButtonToggle: targetPanel is not assigned!");
+            Debug.LogWarning("Missing reference on BuildingButtonToggle.");
             return;
+        }
+
+        // If panel was already visible, we're about to hide it
+        if (isVisible)
+        {
+            buildingButtonSelector.ClearSelection(); // 👈 Clear ghost & selection
         }
 
         isVisible = !isVisible;

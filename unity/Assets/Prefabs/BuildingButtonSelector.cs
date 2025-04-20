@@ -16,7 +16,7 @@ public class BuildingButtonSelector : MonoBehaviour
     public List<BuildingButton> buildingButtons;
     public Color selectedColor = Color.yellow;
     public Color normalColor = Color.white;
-    public Color highlightColor = Color.blue; // This is the new selected plot color
+    public Color highlightColor = Color.blue;
 
     public TMP_Text plotLabel;
 
@@ -40,7 +40,6 @@ public class BuildingButtonSelector : MonoBehaviour
         yield return new WaitUntil(() => gm != null && gm.IsInitialized);
         activeGridManager = gm;
 
-        // Set all OTHER plots to green
         foreach (GridManager plot in FindObjectsByType<GridManager>(FindObjectsSortMode.None))
         {
             if (plot != activeGridManager)
@@ -50,17 +49,14 @@ public class BuildingButtonSelector : MonoBehaviour
             }
         }
 
-        // Now handle the selected one
         activeGridManager.HighlightPlot(highlightColor);
         activeGridManager.SetActive(true);
 
-        // Update UI label
         if (plotLabel != null)
         {
             plotLabel.text = $"Selected Plot: {gm.gameObject.name}";
         }
 
-        // Apply cuboid selection
         if (currentIndex >= 0 && currentIndex < buildingButtons.Count)
         {
             activeGridManager.SetSelectedCuboid(currentIndex);
@@ -99,8 +95,7 @@ public class BuildingButtonSelector : MonoBehaviour
 
         if (activeGridManager != null)
         {
-            activeGridManager.ClearCuboidSelection();
+            activeGridManager.ClearCuboidSelection(); // This will hide the ghost
         }
     }
 }
-
