@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -26,8 +27,13 @@ public class PlotManager : MonoBehaviour
     void Start()
     {
         GeneratePlots();
+        StartCoroutine(InitializeAfterTilesReady());
+    }
 
-        // Center camera pivot on the middle plot
+    private IEnumerator InitializeAfterTilesReady()
+    {
+        yield return null; // Wait one frame to ensure all GridManagers have run Start()
+
         Vector2Int centerPlot = new Vector2Int(plotRows / 2, plotCols / 2);
         GridManager centerManager = plots[centerPlot.x * plotCols + centerPlot.y];
 
@@ -41,8 +47,9 @@ public class PlotManager : MonoBehaviour
 
     private void GeneratePlots()
     {
-        float gridSize = 7f; // Adjust if your GridManager prefab size is different
+        float gridSize = 7f;
         float spacing = gridSize + plotSpacing;
+        Vector2Int center = new Vector2Int(plotRows / 2, plotCols / 2);
 
         for (int row = 0; row < plotRows; row++)
         {
@@ -61,8 +68,23 @@ public class PlotManager : MonoBehaviour
                 grid.SetPlotID($"{row},{col}");
                 grid.SetUIReferences(selectedCuboidUIPanel, selectedCuboidInfoText, upgradeButton);
 
+                // 🔷 NEW: Set BuildingButtonSelector reference
+                grid.SetButtonSelector(buildingSelector);
+
                 plots.Add(grid);
+
+                // Only highlight green if it's not the center plot
+                if (!(row == center.x && col == center.y))
+                {
+                    StartCoroutine(HighlightWhenReady(grid, Color.green));
+                }
             }
         }
+    }
+
+    private IEnumerator HighlightWhenReady(GridManager grid, Color color)
+    {
+        yield return new WaitUntil(() => grid.IsInitialized);
+        grid.HighlightPlot(color);
     }
 }

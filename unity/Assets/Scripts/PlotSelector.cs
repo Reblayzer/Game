@@ -20,13 +20,9 @@ public class PlotSelector : MonoBehaviour
         {
           buttonSelector.SetActiveGridManager(gm);
 
-          // Move the camera pivot
           if (cameraController != null)
-          {
             cameraController.target.position = gm.transform.position;
-          }
 
-          // Re-select the current cuboid type to re-enable placement
           buttonSelector.SelectByIndex(buttonSelector.CurrentIndex);
 
           Debug.Log($"📍 Selected Plot: {gm.name}");

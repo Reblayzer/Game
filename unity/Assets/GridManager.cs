@@ -46,10 +46,14 @@ public class GridManager : MonoBehaviour
     private AudioSource audioSource;
     private bool[,] occupiedTiles;
     private Tile[,] tileGrid;
+    private bool initialized = false;
+    public bool IsInitialized => initialized;
     private bool isRotated = false;
     private GameObject ghostObject;
     private string lastGhostName = "";
     private bool hasSelectedCuboid = false;
+    private Color currentHighlightColor;
+    private BuildingButtonSelector buttonSelector;
     public int selectedIndex = 0;
     public bool IsActive { get; private set; }
 
@@ -59,7 +63,6 @@ public class GridManager : MonoBehaviour
 
     void Start()
     {
-        // 🔶 Add a non-blocking trigger for plot selection
         GameObject triggerZone = new GameObject("PlotTrigger");
         triggerZone.transform.SetParent(transform);
         triggerZone.transform.localPosition = Vector3.zero;
@@ -68,12 +71,10 @@ public class GridManager : MonoBehaviour
 
         BoxCollider trigger = triggerZone.AddComponent<BoxCollider>();
         trigger.size = new Vector3(gridSize, 0.1f, gridSize);
-        trigger.center = new Vector3(0, 0.01f, 0); // Just above tiles
+        trigger.center = new Vector3(0, 0.01f, 0);
         trigger.isTrigger = true;
-
         triggerZone.layer = LayerMask.NameToLayer("Plot");
 
-        // 🔷 Tile setup
         float offset = gridSize / 2f - 0.5f;
         occupiedTiles = new bool[gridSize, gridSize];
         tileGrid = new Tile[gridSize, gridSize];
@@ -92,19 +93,15 @@ public class GridManager : MonoBehaviour
             }
         }
 
-        // 🔊 Audio
         audioSource = GetComponent<AudioSource>();
 
-        // 🧩 UI init
         if (selectedCuboidUIPanel != null)
-        {
             selectedCuboidUIPanel.SetActive(false);
-        }
 
         if (buildingButtonsPanel != null)
-        {
             buildingButtonsPanel.SetActive(true);
-        }
+
+        initialized = true;
     }
 
     public void SetActive(bool state)
@@ -124,12 +121,8 @@ public class GridManager : MonoBehaviour
         }
         else
         {
-            // Optional: show building panel again
             if (buildingButtonsPanel != null)
                 buildingButtonsPanel.SetActive(true);
-
-            if (hasSelectedCuboid)
-                Debug.Log("🟢 Active plot and cuboid selected: CanPlace should be true");
         }
     }
 
@@ -148,12 +141,10 @@ public class GridManager : MonoBehaviour
 
         if (!CanPlace)
         {
-            Debug.LogWarning("⛔ Can't place — CanPlace is false");
             ClearHighlights();
             return;
         }
 
-        // Exclude Ghost and Ignore Raycast layers
         int raycastMask = ~LayerMask.GetMask("Ghost", "Ignore Raycast");
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
         RaycastHit[] hits = Physics.RaycastAll(ray, 100f, raycastMask);
@@ -163,8 +154,6 @@ public class GridManager : MonoBehaviour
         foreach (RaycastHit hit in hits)
         {
             GameObject hitObject = hit.collider.gameObject;
-            string layerName = LayerMask.LayerToName(hitObject.layer);
-            Debug.Log($"🧲 Ray hit: {hitObject.name} (Layer: {layerName})");
 
             Tile tile = hitObject.GetComponent<Tile>();
             if (tile != null && tile.GridManager == this)
@@ -175,7 +164,6 @@ public class GridManager : MonoBehaviour
 
                 if (Input.GetMouseButtonDown(0))
                 {
-                    Debug.Log($"🖱️ Clicked on tile ({tile.gridPosition.x},{tile.gridPosition.y}) — valid: {isValid}");
                     TryPlaceCuboidAt(tile.gridPosition.x, tile.gridPosition.y);
                 }
 
@@ -186,14 +174,11 @@ public class GridManager : MonoBehaviour
 
         if (Input.GetMouseButtonDown(0) && !hitAnyTile)
         {
-            Debug.LogWarning("❌ Clicked but no tile was hit — something blocked it.");
-
             RaycastHit[] allHits = Physics.RaycastAll(ray, 100f);
             foreach (var hit in allHits)
             {
                 string name = hit.collider.name;
                 string layer = LayerMask.LayerToName(hit.collider.gameObject.layer);
-                Debug.Log($"📦 Click possibly blocked by: {name} (Layer: {layer})");
             }
         }
 
@@ -210,25 +195,9 @@ public class GridManager : MonoBehaviour
 
     public void TryPlaceCuboidAt(int startX, int startZ)
     {
-        Debug.Log("📦 TryPlaceCuboidAt: Start");
-
-        if (!CanPlace)
-        {
-            Debug.LogWarning("❌ TryPlaceCuboidAt called but CanPlace is false.");
-            return;
-        }
-
-        if (cuboidTypes == null || cuboidTypes.Length == 0)
-        {
-            Debug.LogError("❌ cuboidTypes array is null or empty.");
-            return;
-        }
-
-        if (selectedIndex < 0 || selectedIndex >= cuboidTypes.Length)
-        {
-            Debug.LogError($"❌ Invalid selectedIndex: {selectedIndex}");
-            return;
-        }
+        if (!CanPlace) return;
+        if (cuboidTypes == null || cuboidTypes.Length == 0) return;
+        if (selectedIndex < 0 || selectedIndex >= cuboidTypes.Length) return;
 
         CuboidType current = cuboidTypes[selectedIndex];
         int length = isRotated ? current.width : current.length;
@@ -239,16 +208,10 @@ public class GridManager : MonoBehaviour
             for (int z = startZ; z < startZ + width; z++)
             {
                 if (x < 0 || z < 0 || x >= gridSize || z >= gridSize)
-                {
-                    Debug.LogWarning($"❌ Out of bounds: ({x},{z})");
                     return;
-                }
 
                 if (occupiedTiles[x, z])
-                {
-                    Debug.LogWarning($"❌ Tile already occupied at: ({x},{z})");
                     return;
-                }
             }
         }
 
@@ -262,7 +225,6 @@ public class GridManager : MonoBehaviour
         Quaternion rotation = isRotated ? Quaternion.Euler(0, 90, 0) : Quaternion.identity;
         GameObject placed = Instantiate(current.prefab, spawnPos, rotation);
 
-        // ✅ Set the layer to avoid blocking raycasts later
         SetLayerRecursive(placed, LayerMask.NameToLayer("Placed"));
 
         SelectableCuboid selectable = placed.AddComponent<SelectableCuboid>();
@@ -286,8 +248,6 @@ public class GridManager : MonoBehaviour
             audioSource.pitch = Random.Range(0.95f, 1.05f);
             audioSource.PlayOneShot(placementSound);
         }
-
-        Debug.Log($"✅ Placed {current.name} at ({startX},{startZ})");
     }
 
     private void SetLayerRecursive(GameObject obj, int layer)
@@ -296,7 +256,6 @@ public class GridManager : MonoBehaviour
         foreach (Transform child in obj.transform)
         {
             SetLayerRecursive(child.gameObject, layer);
-            Debug.Log($"✅ Ghost '{obj.name}' set to layer: {LayerMask.LayerToName(layer)}");
         }
     }
 
@@ -346,7 +305,7 @@ public class GridManager : MonoBehaviour
             {
                 if (x < gridSize && z < gridSize)
                 {
-                    tileGrid[x, z].SetHighlight(highlightColor);
+                    tileGrid[x, z]?.SetTemporaryHighlight(highlightColor);
                 }
             }
         }
@@ -360,10 +319,7 @@ public class GridManager : MonoBehaviour
         {
             for (int z = 0; z < gridSize; z++)
             {
-                if (tileGrid[x, z] != null)
-                {
-                    tileGrid[x, z].ResetColor();
-                }
+                tileGrid[x, z]?.ClearHighlight();
             }
         }
 
@@ -399,11 +355,8 @@ public class GridManager : MonoBehaviour
             ghostObject.name = ghostName;
             lastGhostName = ghostName;
 
-            // Set to Ghost layer
             SetLayerRecursive(ghostObject, LayerMask.NameToLayer("Ghost"));
-
             ApplyGhostMaterial(ghostObject, isValid);
-            Debug.Log($"👻 Spawned new ghost: {ghostName} at {ghostPos} (valid: {isValid})");
         }
         else
         {
@@ -425,7 +378,6 @@ public class GridManager : MonoBehaviour
         foreach (var collider in obj.GetComponentsInChildren<Collider>())
         {
             collider.enabled = false;
-            Debug.Log($"🔇 Disabled collider on ghost child: {collider.gameObject.name}");
         }
     }
 
@@ -439,5 +391,34 @@ public class GridManager : MonoBehaviour
         selectedCuboidUIPanel = panel;
         selectedCuboidInfoText = infoText;
         upgradeButton = upgradeBtn;
+    }
+
+    public void HighlightPlot(Color color)
+    {
+        currentHighlightColor = color;
+
+        for (int x = 0; x < gridSize; x++)
+        {
+            for (int z = 0; z < gridSize; z++)
+            {
+                tileGrid[x, z]?.SetPersistentColor(color);
+            }
+        }
+    }
+
+    public void ResetTileColors()
+    {
+        for (int x = 0; x < gridSize; x++)
+        {
+            for (int z = 0; z < gridSize; z++)
+            {
+                tileGrid[x, z]?.ClearHighlight();
+            }
+        }
+    }
+
+    public void SetButtonSelector(BuildingButtonSelector selector)
+    {
+        buttonSelector = selector;
     }
 }
