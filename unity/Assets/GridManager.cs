@@ -54,6 +54,7 @@ public class GridManager : MonoBehaviour
     private bool hasSelectedCuboid = false;
     private Color currentHighlightColor;
     private BuildingButtonSelector buttonSelector;
+    private bool isEditMode = false;
     public int selectedIndex = 0;
     public bool IsActive { get; private set; }
 
@@ -123,6 +124,11 @@ public class GridManager : MonoBehaviour
         {
             if (buildingButtonsPanel != null)
                 buildingButtonsPanel.SetActive(true);
+
+            if (buttonSelector != null && buttonSelector.CurrentIndex >= 0)
+            {
+                SetSelectedCuboid(buttonSelector.CurrentIndex); // 🛠️ Re-apply selected building
+            }
         }
     }
 
@@ -139,6 +145,36 @@ public class GridManager : MonoBehaviour
 
         HandleRotation();
 
+        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        RaycastHit hit;
+
+        // 🔷 NON-EDIT MODE: Allow selecting buildings only from current plot
+        if (!isEditMode)
+        {
+            if (Input.GetMouseButtonDown(0))
+            {
+                if (Physics.Raycast(ray, out hit, 100f))
+                {
+                    SelectableCuboid cuboid = hit.collider.GetComponent<SelectableCuboid>();
+
+                    if (cuboid != null && cuboid.GridManager == this)
+                    {
+                        // Always show info for the clicked cuboid
+                        cuboid.ShowInfo();
+                    }
+                    else
+                    {
+                        selectedCuboidUIPanel?.SetActive(false);
+                        upgradeButton?.gameObject.SetActive(false);
+                    }
+                }
+            }
+
+            ClearHighlights();
+            return;
+        }
+
+        // 🔷 EDIT MODE: Handle ghost and placement
         if (!CanPlace)
         {
             ClearHighlights();
@@ -146,16 +182,15 @@ public class GridManager : MonoBehaviour
         }
 
         int raycastMask = ~LayerMask.GetMask("Ghost", "Ignore Raycast");
-        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
         RaycastHit[] hits = Physics.RaycastAll(ray, 100f, raycastMask);
 
         bool hitAnyTile = false;
 
-        foreach (RaycastHit hit in hits)
+        foreach (RaycastHit tileHit in hits)
         {
-            GameObject hitObject = hit.collider.gameObject;
-
+            GameObject hitObject = tileHit.collider.gameObject;
             Tile tile = hitObject.GetComponent<Tile>();
+
             if (tile != null && tile.GridManager == this)
             {
                 hitAnyTile = true;
@@ -174,12 +209,8 @@ public class GridManager : MonoBehaviour
 
         if (Input.GetMouseButtonDown(0) && !hitAnyTile)
         {
-            RaycastHit[] allHits = Physics.RaycastAll(ray, 100f);
-            foreach (var hit in allHits)
-            {
-                string name = hit.collider.name;
-                string layer = LayerMask.LayerToName(hit.collider.gameObject.layer);
-            }
+            selectedCuboidUIPanel?.SetActive(false);
+            upgradeButton?.gameObject.SetActive(false);
         }
 
         ClearHighlights();
@@ -232,6 +263,7 @@ public class GridManager : MonoBehaviour
         selectable.infoPanel = SelectedCuboidUIPanel;
         selectable.infoDisplay = SelectedCuboidInfoText;
         selectable.upgradeButton = UpgradeButton;
+        selectable.Init(this);
 
         for (int x = startX; x < startX + length; x++)
         {
@@ -266,6 +298,24 @@ public class GridManager : MonoBehaviour
             selectedIndex = index;
             hasSelectedCuboid = true;
             ClearHighlights();
+
+            // Force immediate ghost preview
+            if (IsActive && isEditMode)
+            {
+                Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+                RaycastHit hit;
+                int mask = ~LayerMask.GetMask("Ghost", "Ignore Raycast");
+
+                if (Physics.Raycast(ray, out hit, 100f, mask))
+                {
+                    Tile tile = hit.collider.GetComponent<Tile>();
+                    if (tile != null && tile.GridManager == this)
+                    {
+                        bool isValid = HighlightTiles(tile.gridPosition.x, tile.gridPosition.y);
+                        ShowGhost(tile.gridPosition.x, tile.gridPosition.y, cuboidTypes[selectedIndex], isRotated, isValid);
+                    }
+                }
+            }
         }
     }
 
@@ -297,16 +347,17 @@ public class GridManager : MonoBehaviour
             }
         }
 
-        Color highlightColor = validPlacement ? Color.green : Color.red;
+        // ✅ Use the selector's ghost colors
+        Color ghostColor = validPlacement
+            ? buttonSelector.ghostCanPlaceColor
+            : buttonSelector.ghostCanNotPlaceColor;
 
         for (int x = startX; x < startX + length; x++)
         {
             for (int z = startZ; z < startZ + width; z++)
             {
                 if (x < gridSize && z < gridSize)
-                {
-                    tileGrid[x, z]?.SetTemporaryHighlight(highlightColor);
-                }
+                    tileGrid[x, z]?.SetTemporaryHighlight(ghostColor);
             }
         }
 
@@ -420,5 +471,40 @@ public class GridManager : MonoBehaviour
     public void SetButtonSelector(BuildingButtonSelector selector)
     {
         buttonSelector = selector;
+    }
+
+    public void SetEditMode(bool state)
+    {
+        isEditMode = state;
+
+        if (!state)
+        {
+            ClearSelectionAndUI();
+        }
+    }
+
+    private void ClearSelectionAndUI()
+    {
+        hasSelectedCuboid = false;
+
+        if (selectedCuboidUIPanel != null)
+            selectedCuboidUIPanel.SetActive(false);
+
+        if (upgradeButton != null)
+            upgradeButton.gameObject.SetActive(false);
+
+        ClearHighlights();
+    }
+
+    public bool IsInEditMode()
+    {
+        return isEditMode;
+    }
+
+    public void HideCuboidInfo()
+    {
+        selectedCuboidUIPanel?.SetActive(false);
+        upgradeButton?.gameObject.SetActive(false);
+        SelectableCuboid.currentlySelectedCuboid = null;
     }
 }

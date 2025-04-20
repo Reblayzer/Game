@@ -3,7 +3,6 @@ using UnityEngine.EventSystems;
 
 public class EscapeUIHandler : MonoBehaviour
 {
-    public GameObject buildingButtonsPanel;
     public GridManager gridManager;
     public BuildingButtonSelector buttonSelector;
 
@@ -11,14 +10,24 @@ public class EscapeUIHandler : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Escape))
         {
-            if (buildingButtonsPanel != null)
-                buildingButtonsPanel.SetActive(false);
+            var toggle = FindFirstObjectByType<BuildingButtonToggle>();
+            if (toggle != null)
+                toggle.HidePanel();
 
             if (gridManager != null)
+            {
                 gridManager.ClearCuboidSelection();
+                gridManager.HideCuboidInfo();
+            }
 
             if (buttonSelector != null)
                 buttonSelector.ClearSelection();
+
+            // ✅ Forcefully clear any selected cuboid globally
+            if (SelectableCuboid.currentlySelectedCuboid != null)
+            {
+                SelectableCuboid.currentlySelectedCuboid.HideInfo();
+            }
 
             EventSystem.current.SetSelectedGameObject(null);
         }

@@ -4,36 +4,36 @@ using TMPro;
 
 public class SelectableCuboid : MonoBehaviour
 {
+    public static SelectableCuboid currentlySelectedCuboid = null;
+
     public string cuboidName;
     public GameObject infoPanel;
     public TMP_Text infoDisplay;
     public Button upgradeButton;
+    public GridManager GridManager { get; private set; }
 
     private int level = 1;
 
-    void OnMouseDown()
+    public void Init(GridManager manager)
     {
-        // Fallback: Get UI refs from the active grid
-        if (infoPanel == null || infoDisplay == null || upgradeButton == null)
-        {
-            GridManager activeGM = FindFirstObjectByType<BuildingButtonSelector>()?.GetActiveGridManager();
-            if (activeGM != null)
-            {
-                infoPanel = activeGM.SelectedCuboidUIPanel;
-                infoDisplay = activeGM.SelectedCuboidInfoText;
-                upgradeButton = activeGM.UpgradeButton;
-            }
-        }
+        GridManager = manager;
+    }
 
+    public void ShowInfo()
+    {
         if (infoPanel == null || infoDisplay == null || upgradeButton == null)
+            return;
+
+        // 🔁 Toggle if clicking same building again
+        if (currentlySelectedCuboid == this && infoPanel.activeSelf)
         {
-            Debug.LogError("❌ Missing UI references on cuboid selection.");
+            GridManager.HideCuboidInfo(); // Hide via GridManager logic
+            currentlySelectedCuboid = null;
             return;
         }
 
         infoPanel.SetActive(true);
         upgradeButton.gameObject.SetActive(true);
-
         infoDisplay.text = $"{cuboidName} (Level {level})";
 
         upgradeButton.onClick.RemoveAllListeners();
@@ -43,6 +43,15 @@ public class SelectableCuboid : MonoBehaviour
             infoDisplay.text = $"{cuboidName} (Level {level})";
         });
 
-        Debug.Log($"✅ {cuboidName} selected and upgrade UI ready.");
+        currentlySelectedCuboid = this;
+    }
+
+    public void HideInfo()
+    {
+        if (infoPanel != null)
+            infoPanel.SetActive(false);
+
+        if (upgradeButton != null)
+            upgradeButton.gameObject.SetActive(false);
     }
 }

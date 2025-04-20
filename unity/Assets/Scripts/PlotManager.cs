@@ -6,6 +6,8 @@ using TMPro;
 
 public class PlotManager : MonoBehaviour
 {
+    public static PlotManager Instance { get; private set; }
+
     [Header("Prefabs & References")]
     public GameObject gridManagerPrefab;
     public BuildingButtonSelector buildingSelector;
@@ -26,6 +28,7 @@ public class PlotManager : MonoBehaviour
 
     void Start()
     {
+        Instance = this;
         GeneratePlots();
         StartCoroutine(InitializeAfterTilesReady());
     }
@@ -76,7 +79,7 @@ public class PlotManager : MonoBehaviour
                 // Only highlight green if it's not the center plot
                 if (!(row == center.x && col == center.y))
                 {
-                    StartCoroutine(HighlightWhenReady(grid, Color.green));
+                    StartCoroutine(HighlightWhenReady(grid, buildingSelector.normalTileColor));
                 }
             }
         }

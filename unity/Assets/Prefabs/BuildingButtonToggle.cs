@@ -18,19 +18,34 @@ public class BuildingButtonToggle : MonoBehaviour
 
     public void ToggleButtons()
     {
-        if (targetPanel == null || buildingButtonSelector == null)
-        {
-            Debug.LogWarning("Missing reference on BuildingButtonToggle.");
-            return;
-        }
-
-        // If panel was already visible, we're about to hide it
-        if (isVisible)
-        {
-            buildingButtonSelector.ClearSelection(); // 👈 Clear ghost & selection
-        }
+        if (targetPanel == null) return;
 
         isVisible = !isVisible;
         targetPanel.SetActive(isVisible);
+
+        if (buildingButtonSelector != null)
+        {
+            buildingButtonSelector.ToggleEditMode(isVisible);
+
+            // ✅ Also hide cuboid info when toggling into edit mode
+            GridManager current = buildingButtonSelector.GetActiveGridManager();
+            if (current != null)
+            {
+                current.HideCuboidInfo();
+            }
+        }
+    }
+
+    public void HidePanel()
+    {
+        if (targetPanel != null && isVisible)
+        {
+            isVisible = false;
+            targetPanel.SetActive(false);
+            if (buildingButtonSelector != null)
+            {
+                buildingButtonSelector.ToggleEditMode(false);
+            }
+        }
     }
 }
