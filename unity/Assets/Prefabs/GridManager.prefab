@@ -49,17 +49,20 @@ MonoBehaviour:
   tilePrefab: {fileID: 2614781486797241175, guid: a4e130ce90dd3c6479a6659a18b35146, type: 3}
   cuboidTypes:
   - name: 2x1x1
-    prefab: {fileID: 8814042518244966010, guid: 568e18e70d8c8ad4482a72f57a6aa430, type: 3}
+    prefab: {fileID: 4366773310149235799, guid: f448cab1e41f74746ad26eb0a19bb8df, type: 3}
+    shockwavePrefab: {fileID: 1921079115439858272, guid: 1fb978dfcdeaeae40a460cdbd681085f, type: 3}
     length: 2
     width: 1
     height: 1
   - name: 1x3x1
     prefab: {fileID: 8814042518244966010, guid: dde16322f26666745977cfe1fb4c3dcc, type: 3}
+    shockwavePrefab: {fileID: 1921079115439858272, guid: 1fb978dfcdeaeae40a460cdbd681085f, type: 3}
     length: 1
     width: 1
     height: 3
   - name: 3x1.5x3
     prefab: {fileID: 8814042518244966010, guid: 0c3eccd7f6f4d8d4aa2471d6fb1dcdc9, type: 3}
+    shockwavePrefab: {fileID: 1921079115439858272, guid: 0963d85dc2e22714397080e6a1d65095, type: 3}
     length: 3
     width: 3
     height: 1
@@ -71,6 +74,7 @@ MonoBehaviour:
   upgradeButton: {fileID: 9211544111179480218, guid: 25b91be1c4167e14fa8a411e6162a8ff, type: 3}
   placementSound: {fileID: 8300000, guid: 46e61277d1601064cbaf817e0330d92c, type: 3}
   selectedIndex: 0
+  plotType: 0
 --- !u!82 &6808531645132439361
 AudioSource:
   m_ObjectHideFlags: 0

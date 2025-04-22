@@ -9,6 +9,7 @@ public class CuboidType
     public string name;
     private string plotID;
     public GameObject prefab;
+    public GameObject shockwavePrefab;
     public int length = 1;
     public int width = 1;
     public int height = 1;
@@ -284,10 +285,19 @@ public class GridManager : MonoBehaviour
 
         ClearHighlights();
 
+        // ✅ Play placement sound
         if (placementSound != null && audioSource != null)
         {
             audioSource.pitch = Random.Range(0.95f, 1.05f);
             audioSource.PlayOneShot(placementSound);
+        }
+
+        // ✅ Play shockwave effect
+        if (current.shockwavePrefab != null)
+        {
+            Vector3 effectPos = spawnPos - new Vector3(0, current.height / 2f - 0.2f, 0); // slight floor offset
+            GameObject vfx = Instantiate(current.shockwavePrefab, effectPos, Quaternion.identity);
+            Destroy(vfx, 2f); // Destroy after 2 seconds (adjust if needed)
         }
     }
 
