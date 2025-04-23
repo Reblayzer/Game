@@ -7,12 +7,15 @@ using UnityEngine.SceneManagement;
 public class AuthenticationManager : MonoBehaviour
 {
     [Header("UI Elements")]
-    public TMP_InputField usernameInput;
-    public TMP_InputField passwordInput;
+    public TMP_InputField loginUsernameInput;
+    public TMP_InputField loginPrivateKeyInput;
+    public TMP_InputField registerUsernameInput;
+    public TMP_InputField registerWalletAddressInput;
     public WalletManager walletManager;
     public Button registerButton;
     public Button loginButton;
-    public TMP_Text feedbackText;
+    public TMP_Text loginFeedback;
+    public TMP_Text registerFeedback;
 
     private List<User> users = new List<User>();
 
@@ -24,12 +27,14 @@ public class AuthenticationManager : MonoBehaviour
 
     void Register()
     {
-        string username = usernameInput.text.Trim();
-        string password = passwordInput.text.Trim();
+        string username = registerUsernameInput.text.Trim();
+        string walletAddress = registerWalletAddressInput.text.Trim();
 
-        if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
+
+
+        if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(walletAddress))
         {
-            feedbackText.text = "Nickname and Password are required.";
+            registerFeedback.text = "Username and Private key are required.";
             return;
         }
 
@@ -37,73 +42,73 @@ public class AuthenticationManager : MonoBehaviour
         {
             if (user.username == username)
             {
-                feedbackText.text = "Nickname already exists.";
+                registerFeedback.text = "Username already exists.";
                 return;
             }
         }
 
-        WalletStorage.SaveWallet(username, password);
-        var walletData = WalletStorage.LoadWallet(username, password);
+        WalletStorage.SaveWallet(username, walletAddress);
+        var walletData = WalletStorage.LoadWallet(username, walletAddress);
         if (walletData == null)
         {
-            feedbackText.text = "⚠️ Wallet creation failed.";
+            registerFeedback.text = "PlayerNFT creation failed.";
             return;
         }
 
-        var newUser = new User(username, password)
+        var newUser = new User(username, walletAddress)
         {
             hasWallet = true,
             walletAddress = walletData.walletAddress
         };
 
         users.Add(newUser);
-        feedbackText.text = $"✅ Registered! Wallet: {walletData.walletAddress}";
+        registerFeedback.text = $"{username} successfully registered!";
         ClearInputs();
     }
 
     void Login()
     {
-        string username = usernameInput.text.Trim();
-        string password = passwordInput.text.Trim();
+        string username = loginUsernameInput.text.Trim();
+        string privateKey = loginPrivateKeyInput.text.Trim();
 
         foreach (var user in users)
         {
             if (user.username == username)
             {
-                if (user.password == password)
+                if (user.walletAddress == privateKey)
                 {
                     // 🧠 Save user to session
                     SessionManager.Instance.currentUser = user;
 
                     // 🔐 Load wallet from keystore
-                    bool walletLoaded = walletManager.LoadWallet(username, password);
+                    bool walletLoaded = walletManager.LoadWallet(username, privateKey);
 
                     if (!walletLoaded)
                     {
-                        feedbackText.text = "Wallet load failed. Corrupted or incorrect password?";
+                        loginFeedback.text = "Login error";
                         return;
                     }
 
-                    feedbackText.text = $"Login successful. Welcome, {username}!";
+                    loginFeedback.text = $"Login successful. Welcome, {username}!";
                     ClearInputs();
                     SceneManager.LoadScene("WorldSelection");
                     return;
                 }
                 else
                 {
-                    feedbackText.text = "Incorrect password.";
+                    loginFeedback.text = "Incorrect Private key.";
                     return;
                 }
             }
         }
 
-        feedbackText.text = "User does not exist.";
+        loginFeedback.text = "Username does not exist.";
     }
 
 
     void ClearInputs()
     {
-        usernameInput.text = "";
-        passwordInput.text = "";
+        loginUsernameInput.text = "";
+        loginPrivateKeyInput.text = "";
     }
 }
