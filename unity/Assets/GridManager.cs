@@ -50,6 +50,9 @@ public class GridManager : MonoBehaviour
 
     [Header("Audio")]
     public AudioClip placementSound;
+
+    [Header("Marker Canvas Prefab")]
+    [Tooltip("A world‐space canvas prefab with BillboardCanvas + MarkerCanvasController on its root")]
     public GameObject plotCanvasPrefab;
     private AudioSource audioSource;
     private bool[,] occupiedTiles;
@@ -70,7 +73,7 @@ public class GridManager : MonoBehaviour
     public bool CanPlace => buildingButtonsPanel != null
                         && buildingButtonsPanel.activeSelf
                         && hasSelectedCuboid
-                        && plotType == PlotType.Normal; // ⛔ Only Normal plots allow placement
+                        && plotType == PlotType.Normal;
 
     void Start()
     {
@@ -90,7 +93,7 @@ public class GridManager : MonoBehaviour
         {
             GameObject canvasInstance = Instantiate(plotCanvasPrefab, triggerZone.transform);
             canvasInstance.SetActive(false);
-            canvasInstance.transform.localPosition = new Vector3(0, 2f, 0); // float above the plot
+            canvasInstance.transform.localPosition = new Vector3(0, 2f, 0);
             canvasInstance.transform.localRotation = Quaternion.identity;
             canvasInstance.AddComponent<BillboardCanvas>();
             var ptc = triggerZone.AddComponent<PlotTriggerController>();

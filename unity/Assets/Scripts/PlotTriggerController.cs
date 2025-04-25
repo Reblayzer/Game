@@ -1,14 +1,18 @@
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 [RequireComponent(typeof(Collider))]
 public class PlotTriggerController : MonoBehaviour
 {
     [HideInInspector] public GameObject markerCanvas;
-
     private static PlotTriggerController s_current;
 
     void OnMouseDown()
     {
+        if (EventSystem.current != null
+            && EventSystem.current.IsPointerOverGameObject())
+            return;
+
         if (MapUIController.I != null && MapUIController.I.IsMapOpen)
             return;
 
