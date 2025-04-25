@@ -91,6 +91,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
+    - _AddPrecomputedVelocity: 0
     - _AlphaClip: 0
     - _AlphaToMask: 0
     - _BillboardKwToggle: 0
@@ -120,7 +121,7 @@ Material:
     - _QueueControl: 0
     - _QueueOffset: 4
     - _ReceiveShadows: 1
-    - _Smoothness: 0.65
+    - _Smoothness: 0.25
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
@@ -140,8 +141,8 @@ Material:
     - _WorkflowMode: 1
     - _ZWrite: 1
     m_Colors:
-    - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
-    - _Color: {r: 1, g: 1, b: 1, a: 1}
+    - _BaseColor: {r: 0.31132078, g: 0.31132078, b: 0.31132078, a: 1}
+    - _Color: {r: 0.31132075, g: 0.31132075, b: 0.31132075, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 0}
     - _EmissionColorUI: {r: 1, g: 1, b: 1, a: 1}
     - _HueVariationColor: {r: 1, g: 0.5, b: 0, a: 0.1}

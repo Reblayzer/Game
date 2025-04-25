@@ -50,7 +50,7 @@ public class GridManager : MonoBehaviour
 
     [Header("Audio")]
     public AudioClip placementSound;
-
+    public GameObject plotCanvasPrefab;
     private AudioSource audioSource;
     private bool[,] occupiedTiles;
     private Tile[,] tileGrid;
@@ -85,6 +85,15 @@ public class GridManager : MonoBehaviour
         trigger.center = new Vector3(0, 0.01f, 0);
         trigger.isTrigger = true;
         triggerZone.layer = LayerMask.NameToLayer("Plot");
+
+        if (plotCanvasPrefab != null)
+        {
+            GameObject canvasInstance = Instantiate(plotCanvasPrefab, triggerZone.transform);
+            canvasInstance.SetActive(false);
+            canvasInstance.transform.localPosition = new Vector3(0, 2f, 0); // float above the plot
+            canvasInstance.transform.localRotation = Quaternion.identity;
+            canvasInstance.AddComponent<BillboardCanvas>();
+        }
 
         float offset = gridSize / 2f - 0.5f;
         occupiedTiles = new bool[gridSize, gridSize];

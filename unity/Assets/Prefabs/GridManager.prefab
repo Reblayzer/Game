@@ -73,6 +73,7 @@ MonoBehaviour:
   selectedCuboidInfoText: {fileID: 4791140101029067594, guid: b149c5ed2f9b3434eb5f592829f52cc4, type: 3}
   upgradeButton: {fileID: 9211544111179480218, guid: 25b91be1c4167e14fa8a411e6162a8ff, type: 3}
   placementSound: {fileID: 8300000, guid: 46e61277d1601064cbaf817e0330d92c, type: 3}
+  plotCanvasPrefab: {fileID: 6485226225781762281, guid: 57b92717c162250439f625f7c48a4ff8, type: 3}
   selectedIndex: 0
   plotType: 0
 --- !u!82 &6808531645132439361
