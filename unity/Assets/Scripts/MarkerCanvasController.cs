@@ -9,6 +9,8 @@ public class MarkerCanvasController : MonoBehaviour
     {
         _canvas = GetComponent<Canvas>();
         var btn = transform.Find("MarkerAid")?.GetComponent<Button>();
+        if (btn != null)
+            btn.onClick.AddListener(ToggleVisibility);
     }
 
     public void ToggleVisibility()
