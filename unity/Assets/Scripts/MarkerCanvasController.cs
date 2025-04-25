@@ -3,18 +3,22 @@ using UnityEngine.UI;
 
 public class MarkerCanvasController : MonoBehaviour
 {
-    private Canvas _canvas;
+    Canvas _canvas;
+    Button _btn;
 
     void Awake()
     {
         _canvas = GetComponent<Canvas>();
-        var btn = transform.Find("MarkerAid")?.GetComponent<Button>();
-        if (btn != null)
-            btn.onClick.AddListener(ToggleVisibility);
+        _btn = transform.Find("MarkerAid")?.GetComponent<Button>();
+        if (_btn != null)
+            _btn.onClick.AddListener(OnMarkerClicked);
     }
 
-    public void ToggleVisibility()
+    void OnMarkerClicked()
     {
+        if (MapUIController.I != null && MapUIController.I.IsMapOpen)
+            return;
+
         _canvas.gameObject.SetActive(!_canvas.gameObject.activeSelf);
     }
 }

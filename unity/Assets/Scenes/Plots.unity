@@ -18237,6 +18237,17 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 1083627424106842153, guid: e58a7f234cf58d1498a06df13b4b0ca6, type: 3}
   m_PrefabInstance: {fileID: 1809899044}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1943908766 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6873503705865501072, guid: e58a7f234cf58d1498a06df13b4b0ca6, type: 3}
+  m_PrefabInstance: {fileID: 1809899044}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1943908764}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9085046f02f69544eb97fd06b6048fe2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &1943908767
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -18249,6 +18260,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 78a8dd702c7f7e3438cff1fb46f42442, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  mapToggle: {fileID: 1943908766}
 --- !u!1001 &1974383389
 PrefabInstance:
   m_ObjectHideFlags: 0

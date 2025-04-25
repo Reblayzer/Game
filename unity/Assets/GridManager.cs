@@ -93,6 +93,8 @@ public class GridManager : MonoBehaviour
             canvasInstance.transform.localPosition = new Vector3(0, 2f, 0); // float above the plot
             canvasInstance.transform.localRotation = Quaternion.identity;
             canvasInstance.AddComponent<BillboardCanvas>();
+            var ptc = triggerZone.AddComponent<PlotTriggerController>();
+            ptc.markerCanvas = canvasInstance;
         }
 
         float offset = gridSize / 2f - 0.5f;
