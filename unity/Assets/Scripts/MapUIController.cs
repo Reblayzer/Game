@@ -15,7 +15,12 @@ public class MapUIController : MonoBehaviour
 
     public void ToggleAllMarkers(bool show)
     {
-        var all = FindObjectsOfType<MarkerCanvasController>(includeInactive: true);
+        // First: include inactive, then sort mode
+        var all = Object.FindObjectsByType<MarkerCanvasController>(
+            FindObjectsInactive.Include,
+            FindObjectsSortMode.None
+        );
+
         foreach (var c in all)
             c.gameObject.SetActive(show);
     }

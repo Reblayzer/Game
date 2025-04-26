@@ -89,13 +89,14 @@ public class GridManager : MonoBehaviour
         trigger.isTrigger = true;
         triggerZone.layer = LayerMask.NameToLayer("Plot");
 
-        if (plotCanvasPrefab != null)
+        if (plotType != PlotType.Void && plotCanvasPrefab != null)
         {
             GameObject canvasInstance = Instantiate(plotCanvasPrefab, triggerZone.transform);
             canvasInstance.SetActive(false);
             canvasInstance.transform.localPosition = new Vector3(0, 2f, 0);
             canvasInstance.transform.localRotation = Quaternion.identity;
             canvasInstance.AddComponent<BillboardCanvas>();
+
             var ptc = triggerZone.AddComponent<PlotTriggerController>();
             ptc.markerCanvas = canvasInstance;
         }
