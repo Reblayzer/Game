@@ -45,6 +45,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 76132ec2885bbf04dba54b97ceea5284, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  ownership: 0
   gridSize: 7
   tilePrefab: {fileID: 2614781486797241175, guid: a4e130ce90dd3c6479a6659a18b35146, type: 3}
   cuboidTypes:
@@ -73,7 +74,10 @@ MonoBehaviour:
   selectedCuboidInfoText: {fileID: 4791140101029067594, guid: b149c5ed2f9b3434eb5f592829f52cc4, type: 3}
   upgradeButton: {fileID: 9211544111179480218, guid: 25b91be1c4167e14fa8a411e6162a8ff, type: 3}
   placementSound: {fileID: 8300000, guid: 46e61277d1601064cbaf817e0330d92c, type: 3}
-  plotCanvasPrefab: {fileID: 6485226225781762281, guid: 57b92717c162250439f625f7c48a4ff8, type: 3}
+  claimedMarkerCanvasPrefab: {fileID: 6485226225781762281, guid: 57b92717c162250439f625f7c48a4ff8, type: 3}
+  unclaimedMarkerCanvasPrefab: {fileID: 6485226225781762281, guid: c0991f7431db1aa46af7402d9e1f6e41, type: 3}
+  abandonedMarkerCanvasPrefab: {fileID: 6485226225781762281, guid: ca7b0c6a0519eb34e8cc3fecd0b4c812, type: 3}
+  opponentMarkerCanvasPrefab: {fileID: 6485226225781762281, guid: 3a334c3d43699e644bb0c6501aa6fc00, type: 3}
   selectedIndex: 0
   plotType: 0
 --- !u!82 &6808531645132439361

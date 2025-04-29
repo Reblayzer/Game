@@ -3,19 +3,30 @@ using UnityEngine.UI;
 
 public class MapUIController : MonoBehaviour
 {
+    [Header("UI")]
     public Toggle mapToggle;
+    public PlotSelector plotSelector;
+
     public static MapUIController I { get; private set; }
 
     void Awake()
     {
-        I = this;
+        if (I == null) I = this;
+
+        if (mapToggle != null)
+            mapToggle.onValueChanged.AddListener(OnMapToggled);
     }
 
     public bool IsMapOpen => mapToggle != null && mapToggle.isOn;
 
+    private void OnMapToggled(bool isOpen)
+    {
+        ToggleAllMarkers(isOpen);
+        plotSelector?.UpdateBuildingsButton();
+    }
+
     public void ToggleAllMarkers(bool show)
     {
-        // First: include inactive, then sort mode
         var all = Object.FindObjectsByType<MarkerCanvasController>(
             FindObjectsInactive.Include,
             FindObjectsSortMode.None

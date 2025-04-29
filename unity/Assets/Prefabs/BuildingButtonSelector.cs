@@ -74,8 +74,12 @@ public class BuildingButtonSelector : MonoBehaviour
         activeGridManager.SetActive(true);
 
         if (plotLabel != null)
-            plotLabel.text = $"Selected Plot: {gm.gameObject.name}";
-
+        {
+            const string plotName = "MMMMMMMMMMMMMMM";
+            int row = gm.plotRow;
+            int col = gm.plotCol;
+            plotLabel.text = $"{plotName} {row:00} | {col:00}";
+        }
         UpdatePanelButtonsVisibility();
 
         if (currentIndex >= 0 && currentIndex < buildingButtons.Count)

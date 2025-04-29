@@ -1,76 +1,122 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 public class PlotSelector : MonoBehaviour
 {
+  [Header("Wiring")]
   public BuildingButtonSelector buttonSelector;
   public CameraController cameraController;
-  private GridManager currentHoverPlot;
+  public MapUIController mapUI;
+
+  [Header("UI")]
+  public Toggle mapToggle;
+  public Button buildingsButton;
+
+  private GridManager _hoveredPlot;
+
+  void Awake()
+  {
+    if (mapToggle != null)
+      mapToggle.onValueChanged.AddListener(_ => UpdateBuildingsButton());
+  }
+
+  void Start()
+  {
+    if (buildingsButton != null)
+      buildingsButton.onClick.AddListener(OnBuildingsClicked);
+
+    UpdateBuildingsButton();
+  }
 
   void Update()
   {
+    UpdateBuildingsButton();
+
     if (Input.GetMouseButtonDown(0) && !EventSystem.current.IsPointerOverGameObject())
     {
       Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
       int plotMask = LayerMask.GetMask("Plot");
-
-      if (Physics.Raycast(ray, out RaycastHit hit, 100f, plotMask))
+      if (Physics.Raycast(ray, out var hit, 100f, plotMask))
       {
-        GridManager gm = hit.collider.GetComponentInParent<GridManager>();
-
-        if (gm != null)
+        var gm = hit.collider.GetComponentInParent<GridManager>();
+        if (gm != null && buttonSelector.GetActiveGridManager() != gm)
         {
-          if (buttonSelector.GetActiveGridManager() == gm)
-            return;
-
           var toggle = FindFirstObjectByType<BuildingButtonToggle>();
           if (toggle != null && toggle.IsVisible())
             toggle.ToggleButtons();
 
           buttonSelector.SetActiveGridManager(gm);
-
           if (cameraController != null)
             cameraController.target.position = gm.transform.position;
 
           buttonSelector.SelectByIndex(buttonSelector.CurrentIndex);
+
           Debug.Log($"📍 Selected Plot: {gm.name}");
+          UpdateBuildingsButton();
         }
       }
     }
+
     HandlePlotHover();
   }
 
-  void HandlePlotHover()
+  public void UpdateBuildingsButton()
+  {
+    bool mapOpen = mapToggle != null && mapToggle.isOn;
+    var gm = buttonSelector.GetActiveGridManager();
+
+    Ownership owner = Ownership.Unclaimed;
+    if (gm != null)
+    {
+      var ptc = gm.GetComponentInChildren<PlotTriggerController>();
+      if (ptc != null)
+        owner = ptc.ownership;
+    }
+
+    bool shouldShow = !mapOpen && gm != null && owner == Ownership.Yours;
+    if (buildingsButton != null)
+      buildingsButton.gameObject.SetActive(shouldShow);
+  }
+
+  private void OnBuildingsClicked()
+  {
+    var gm = buttonSelector.GetActiveGridManager();
+    if (gm == null) return;
+
+    buttonSelector.ToggleEditMode(true);
+    gm.SetActive(true);
+    gm.SetEditMode(true);
+  }
+
+  private void HandlePlotHover()
   {
     Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
     int plotMask = LayerMask.GetMask("Plot");
 
-    if (Physics.Raycast(ray, out RaycastHit hit, 100f, plotMask))
+    if (Physics.Raycast(ray, out var hit, 100f, plotMask))
     {
-      GridManager hovered = hit.collider.GetComponentInParent<GridManager>();
-      GridManager selected = buttonSelector.GetActiveGridManager();
+      var hovered = hit.collider.GetComponentInParent<GridManager>();
+      var selected = buttonSelector.GetActiveGridManager();
 
       if (hovered != null && hovered != selected)
       {
-        if (hovered != currentHoverPlot)
+        if (hovered != _hoveredPlot)
         {
-          // Restore old hover plot
-          if (currentHoverPlot != null)
-            currentHoverPlot.HighlightPlot(buttonSelector.normalTileColor);
+          if (_hoveredPlot != null)
+            _hoveredPlot.HighlightPlot(buttonSelector.normalTileColor);
 
-          // Highlight new hover plot
           hovered.HighlightPlot(buttonSelector.hoverHighlightPlot);
-          currentHoverPlot = hovered;
+          _hoveredPlot = hovered;
         }
         return;
       }
     }
 
-    // Reset hover if no valid hit or hovering selected plot
-    if (currentHoverPlot != null)
+    if (_hoveredPlot != null)
     {
-      currentHoverPlot.HighlightPlot(buttonSelector.normalTileColor);
-      currentHoverPlot = null;
+      _hoveredPlot.HighlightPlot(buttonSelector.normalTileColor);
+      _hoveredPlot = null;
     }
   }
 }

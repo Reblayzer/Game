@@ -20,15 +20,15 @@ public class CuboidType
     }
 }
 
-public enum PlotType
-{
-    Normal,
-    Abandoned,
-    Void
-}
+public enum PlotType { Normal, Abandoned, Void }
+public enum Ownership { Unclaimed, Yours, Opponent }
 
 public class GridManager : MonoBehaviour
 {
+    [HideInInspector] public Ownership ownership = Ownership.Unclaimed;
+    [HideInInspector] public int plotRow;
+    [HideInInspector] public int plotCol;
+
     [Header("Grid Settings")]
     public int gridSize = 7;
     public GameObject tilePrefab;
@@ -51,54 +51,76 @@ public class GridManager : MonoBehaviour
     [Header("Audio")]
     public AudioClip placementSound;
 
-    [Header("Marker Canvas Prefab")]
-    [Tooltip("A world‐space canvas prefab with BillboardCanvas + MarkerCanvasController on its root")]
-    public GameObject plotCanvasPrefab;
+    [Header("Marker Canvas Prefabs")]
+    public GameObject claimedMarkerCanvasPrefab;
+    public GameObject unclaimedMarkerCanvasPrefab;
+    public GameObject abandonedMarkerCanvasPrefab;
+    public GameObject opponentMarkerCanvasPrefab;
+
     private AudioSource audioSource;
     private bool[,] occupiedTiles;
     private Tile[,] tileGrid;
     private bool initialized = false;
     public bool IsInitialized => initialized;
+
     private bool isRotated = false;
     private GameObject ghostObject;
     private string lastGhostName = "";
     private bool hasSelectedCuboid = false;
-    private Color currentHighlightColor;
     private BuildingButtonSelector buttonSelector;
     private bool isEditMode = false;
     public int selectedIndex = 0;
-    public bool IsActive { get; private set; }
-    public PlotType plotType = PlotType.Normal;
+    private Color currentHighlightColor;
 
-    public bool CanPlace => buildingButtonsPanel != null
-                        && buildingButtonsPanel.activeSelf
-                        && hasSelectedCuboid
-                        && plotType == PlotType.Normal;
+    public bool CanPlace =>
+        buildingButtonsPanel != null &&
+        buildingButtonsPanel.activeSelf &&
+        hasSelectedCuboid &&
+        plotType == PlotType.Normal;
+
+    public PlotType plotType = PlotType.Normal;
+    public bool IsActive { get; private set; }
 
     void Start()
     {
-        GameObject triggerZone = new GameObject("PlotTrigger");
+        var triggerZone = new GameObject("PlotTrigger");
         triggerZone.transform.SetParent(transform);
         triggerZone.transform.localPosition = Vector3.zero;
         triggerZone.transform.localRotation = Quaternion.identity;
         triggerZone.transform.localScale = Vector3.one;
 
-        BoxCollider trigger = triggerZone.AddComponent<BoxCollider>();
-        trigger.size = new Vector3(gridSize, 0.1f, gridSize);
-        trigger.center = new Vector3(0, 0.01f, 0);
-        trigger.isTrigger = true;
+        var box = triggerZone.AddComponent<BoxCollider>();
+        box.size = new Vector3(gridSize, 0.1f, gridSize);
+        box.center = new Vector3(0, 0.01f, 0);
+        box.isTrigger = true;
         triggerZone.layer = LayerMask.NameToLayer("Plot");
 
-        if (plotType != PlotType.Void && plotCanvasPrefab != null)
-        {
-            GameObject canvasInstance = Instantiate(plotCanvasPrefab, triggerZone.transform);
-            canvasInstance.SetActive(false);
-            canvasInstance.transform.localPosition = new Vector3(0, 2f, 0);
-            canvasInstance.transform.localRotation = Quaternion.identity;
-            canvasInstance.AddComponent<BillboardCanvas>();
+        var ptc = triggerZone.AddComponent<PlotTriggerController>();
+        ptc.ownership = ownership;
 
-            var ptc = triggerZone.AddComponent<PlotTriggerController>();
-            ptc.markerCanvas = canvasInstance;
+        GameObject prefabToUse = null;
+        if (plotType == PlotType.Abandoned)
+        {
+            prefabToUse = abandonedMarkerCanvasPrefab;
+        }
+        else if (plotType == PlotType.Normal)
+        {
+            switch (ownership)
+            {
+                case Ownership.Yours: prefabToUse = claimedMarkerCanvasPrefab; break;
+                case Ownership.Opponent: prefabToUse = opponentMarkerCanvasPrefab; break;
+                default: prefabToUse = unclaimedMarkerCanvasPrefab; break;
+            }
+        }
+
+        if (prefabToUse != null)
+        {
+            var canv = Instantiate(prefabToUse, triggerZone.transform);
+            canv.SetActive(false);
+            canv.transform.localPosition = new Vector3(0, 2f, 0);
+            canv.transform.localRotation = Quaternion.identity;
+            canv.AddComponent<BillboardCanvas>();
+            ptc.markerCanvas = canv;
         }
 
         float offset = gridSize / 2f - 0.5f;
@@ -106,26 +128,20 @@ public class GridManager : MonoBehaviour
         tileGrid = new Tile[gridSize, gridSize];
 
         for (int x = 0; x < gridSize; x++)
-        {
             for (int z = 0; z < gridSize; z++)
             {
-                Vector3 position = transform.position + new Vector3(x - offset, 0, z - offset);
-                GameObject tileObj = Instantiate(tilePrefab, position, Quaternion.identity, transform);
+                Vector3 pos = transform.position + new Vector3(x - offset, 0, z - offset);
+                var tileObj = Instantiate(tilePrefab, pos, Quaternion.identity, transform);
                 tileObj.layer = LayerMask.NameToLayer("Tile");
 
-                Tile tileScript = tileObj.AddComponent<Tile>();
+                var tileScript = tileObj.AddComponent<Tile>();
                 tileScript.Init(new Vector2Int(x, z), this);
                 tileGrid[x, z] = tileScript;
             }
-        }
 
         audioSource = GetComponent<AudioSource>();
-
-        if (selectedCuboidUIPanel != null)
-            selectedCuboidUIPanel.SetActive(false);
-
-        if (buildingButtonsPanel != null)
-            buildingButtonsPanel.SetActive(true);
+        if (selectedCuboidUIPanel != null) selectedCuboidUIPanel.SetActive(false);
+        if (buildingButtonsPanel != null) buildingButtonsPanel.SetActive(true);
 
         initialized = true;
     }
@@ -138,107 +154,15 @@ public class GridManager : MonoBehaviour
         {
             ClearHighlights();
             hasSelectedCuboid = false;
-
-            if (selectedCuboidUIPanel != null)
-                selectedCuboidUIPanel.SetActive(false);
-
-            if (upgradeButton != null)
-                upgradeButton.gameObject.SetActive(false);
+            if (selectedCuboidUIPanel != null) selectedCuboidUIPanel.SetActive(false);
+            if (upgradeButton != null) upgradeButton.gameObject.SetActive(false);
         }
         else
         {
-            if (buildingButtonsPanel != null)
-                buildingButtonsPanel.SetActive(true);
-
+            if (buildingButtonsPanel != null) buildingButtonsPanel.SetActive(true);
             if (buttonSelector != null && buttonSelector.CurrentIndex >= 0)
-            {
-                SetSelectedCuboid(buttonSelector.CurrentIndex); // 🛠️ Re-apply selected building
-            }
+                SetSelectedCuboid(buttonSelector.CurrentIndex);
         }
-    }
-
-    void Update()
-    {
-        if (!IsActive)
-            return;
-
-        if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
-        {
-            ClearHighlights();
-            return;
-        }
-
-        HandleRotation();
-
-        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-        RaycastHit hit;
-
-        // 🔷 NON-EDIT MODE: Allow selecting buildings only from current plot
-        if (!isEditMode)
-        {
-            if (Input.GetMouseButtonDown(0))
-            {
-                if (Physics.Raycast(ray, out hit, 100f))
-                {
-                    SelectableCuboid cuboid = hit.collider.GetComponent<SelectableCuboid>();
-
-                    if (cuboid != null && cuboid.GridManager == this)
-                    {
-                        // Always show info for the clicked cuboid
-                        cuboid.ShowInfo();
-                    }
-                    else
-                    {
-                        selectedCuboidUIPanel?.SetActive(false);
-                        upgradeButton?.gameObject.SetActive(false);
-                    }
-                }
-            }
-
-            ClearHighlights();
-            return;
-        }
-
-        // 🔷 EDIT MODE: Handle ghost and placement
-        if (!CanPlace)
-        {
-            ClearHighlights();
-            return;
-        }
-
-        int raycastMask = ~LayerMask.GetMask("Ghost", "Ignore Raycast");
-        RaycastHit[] hits = Physics.RaycastAll(ray, 100f, raycastMask);
-
-        bool hitAnyTile = false;
-
-        foreach (RaycastHit tileHit in hits)
-        {
-            GameObject hitObject = tileHit.collider.gameObject;
-            Tile tile = hitObject.GetComponent<Tile>();
-
-            if (tile != null && tile.GridManager == this)
-            {
-                hitAnyTile = true;
-
-                bool isValid = HighlightTiles(tile.gridPosition.x, tile.gridPosition.y);
-
-                if (Input.GetMouseButtonDown(0))
-                {
-                    TryPlaceCuboidAt(tile.gridPosition.x, tile.gridPosition.y);
-                }
-
-                ShowGhost(tile.gridPosition.x, tile.gridPosition.y, cuboidTypes[selectedIndex], isRotated, isValid);
-                return;
-            }
-        }
-
-        if (Input.GetMouseButtonDown(0) && !hitAnyTile)
-        {
-            selectedCuboidUIPanel?.SetActive(false);
-            upgradeButton?.gameObject.SetActive(false);
-        }
-
-        ClearHighlights();
     }
 
     private void HandleRotation()
@@ -300,19 +224,17 @@ public class GridManager : MonoBehaviour
 
         ClearHighlights();
 
-        // ✅ Play placement sound
         if (placementSound != null && audioSource != null)
         {
             audioSource.pitch = Random.Range(0.95f, 1.05f);
             audioSource.PlayOneShot(placementSound);
         }
 
-        // ✅ Play shockwave effect
         if (current.shockwavePrefab != null)
         {
-            Vector3 effectPos = spawnPos - new Vector3(0, current.height / 2f - 0.2f, 0); // slight floor offset
+            Vector3 effectPos = spawnPos - new Vector3(0, current.height / 2f - 0.2f, 0);
             GameObject vfx = Instantiate(current.shockwavePrefab, effectPos, Quaternion.identity);
-            Destroy(vfx, 2f); // Destroy after 2 seconds (adjust if needed)
+            Destroy(vfx, 2f);
         }
     }
 

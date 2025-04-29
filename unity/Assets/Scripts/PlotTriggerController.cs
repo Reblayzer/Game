@@ -6,9 +6,12 @@ public class PlotTriggerController : MonoBehaviour
 {
     [HideInInspector] public GameObject markerCanvas;
     private static PlotTriggerController s_current;
+    public Ownership ownership = Ownership.Unclaimed;
 
     void OnMouseDown()
     {
+        if (markerCanvas == null)
+            return;
         if (EventSystem.current != null
             && EventSystem.current.IsPointerOverGameObject())
             return;
