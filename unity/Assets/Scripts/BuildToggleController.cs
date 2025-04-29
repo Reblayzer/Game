@@ -11,24 +11,42 @@ public class BuildToggleController : MonoBehaviour
     [Tooltip("The Scroll View (or any GameObject) you want to show/hide when this is toggled.")]
     public GameObject scrollView;
 
+    [Tooltip("The parent GameObject of all the individual Blueprint info panels.")]
+    public GameObject blueprintInfoContainer;
+
     void Awake()
     {
         if (buildToggle == null)
             buildToggle = GetComponent<Toggle>();
 
-        buildToggle.onValueChanged.AddListener(SetScrollViewActive);
+        // Whenever buildToggle flips, we update both ScrollView and the info‐container
+        buildToggle.onValueChanged.AddListener(OnBuildToggleChanged);
 
-        SetScrollViewActive(buildToggle.isOn);
+        // initialize to current state
+        OnBuildToggleChanged(buildToggle.isOn);
     }
 
     void OnDestroy()
     {
-        buildToggle.onValueChanged.RemoveListener(SetScrollViewActive);
+        buildToggle.onValueChanged.RemoveListener(OnBuildToggleChanged);
     }
 
-    private void SetScrollViewActive(bool isOn)
+    private void OnBuildToggleChanged(bool isOn)
     {
+        // show/hide the scroll view
         if (scrollView != null)
             scrollView.SetActive(isOn);
+
+        // show/hide the entire block of blueprint info panels
+        if (blueprintInfoContainer != null)
+            blueprintInfoContainer.SetActive(isOn);
+
+        // **Optional**: if you also want to reset any individual blueprint toggles
+        // when turning off, you can un‐check them here:
+        if (!isOn && blueprintInfoContainer != null)
+        {
+            foreach (var tb in blueprintInfoContainer.GetComponentsInChildren<Toggle>())
+                tb.isOn = false;
+        }
     }
 }
