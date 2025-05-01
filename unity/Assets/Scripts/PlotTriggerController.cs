@@ -5,31 +5,41 @@ using UnityEngine.EventSystems;
 public class PlotTriggerController : MonoBehaviour
 {
     [HideInInspector] public GameObject markerCanvas;
-    private static PlotTriggerController s_current;
     public Ownership ownership = Ownership.Unclaimed;
 
     void OnMouseDown()
     {
-        if (markerCanvas == null)
-            return;
-        if (EventSystem.current != null
-            && EventSystem.current.IsPointerOverGameObject())
+        // 1) Ignore clicks over UI
+        if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
             return;
 
+        // 2) Ignore if the map is up
         if (MapUIController.I != null && MapUIController.I.IsMapOpen)
             return;
 
-        if (s_current == this)
+        // 3) Tell our central PlotSelector
+        var gm = GetComponentInParent<GridManager>();
+        if (gm != null && PlotSelector.Instance != null)
+            PlotSelector.Instance.SelectPlot(gm);
+
+        // 4) Marker‐canvas toggle
+        if (markerCanvas == null) return;
+
+        if (markerCanvas.activeSelf)
         {
             markerCanvas.SetActive(false);
-            s_current = null;
             return;
         }
 
-        if (s_current != null)
-            s_current.markerCanvas.SetActive(false);
+        // hide any others
+        var others = Object.FindObjectsByType<PlotTriggerController>(
+            FindObjectsInactive.Include,
+            FindObjectsSortMode.None
+        );
+        foreach (var other in others)
+            if (other != this && other.markerCanvas != null)
+                other.markerCanvas.SetActive(false);
 
         markerCanvas.SetActive(true);
-        s_current = this;
     }
 }
