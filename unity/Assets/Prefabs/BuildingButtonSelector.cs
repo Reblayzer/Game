@@ -33,7 +33,11 @@ public class BuildingButtonSelector : MonoBehaviour
     public Color ghostCanNotPlaceColor;
     public Color hoverHighlightPlot;
 
-    public TMP_Text plotLabel;
+    [Header("the “owned”–plot label")]
+    public TMP_Text ownedPlotLabel;
+
+    [Header("the “buy”–plot label")]
+    public TMP_Text buyPlotLabel;
     private int currentIndex = -1;
     private GridManager activeGridManager;
     private GridManager currentlyHoveredPlot;
@@ -73,12 +77,18 @@ public class BuildingButtonSelector : MonoBehaviour
         activeGridManager.HighlightPlot(selectedTileColor);
         activeGridManager.SetActive(true);
 
-        if (plotLabel != null)
+        bool isUnclaimed = gm.ownership == Ownership.Unclaimed;
+
+        ownedPlotLabel.gameObject.SetActive(!isUnclaimed);
+        buyPlotLabel.gameObject.SetActive(isUnclaimed);
+
+        TMP_Text label = isUnclaimed ? buyPlotLabel : ownedPlotLabel;
+        if (label != null)
         {
             const string plotName = "MMMMMMMMMMMMMMM";
             int row = gm.plotRow;
             int col = gm.plotCol;
-            plotLabel.text = $"{plotName} {row:00} | {col:00}";
+            label.text = $"{plotName} {row:00} | {col:00}";
         }
         UpdatePanelButtonsVisibility();
 
@@ -105,12 +115,12 @@ public class BuildingButtonSelector : MonoBehaviour
         for (int i = 0; i < buildingButtons.Count; i++)
         {
             if (buildingButtons[i]?.backgroundImage != null)
-                buildingButtons[i].backgroundImage.color = (i == index) ? selectedButtonColor : normalButtonColor; // ✅ Fixed
+                buildingButtons[i].backgroundImage.color = (i == index) ? selectedButtonColor : normalButtonColor;
         }
 
         if (currentIndex == index)
         {
-            ClearSelection(); // Clicking again deselects
+            ClearSelection();
             return;
         }
 
@@ -125,13 +135,13 @@ public class BuildingButtonSelector : MonoBehaviour
         foreach (var button in buildingButtons)
         {
             if (button?.backgroundImage != null)
-                button.backgroundImage.color = normalButtonColor; // ✅ Fixed
+                button.backgroundImage.color = normalButtonColor;
         }
 
         currentIndex = -1;
 
         if (activeGridManager != null)
-            activeGridManager.ClearCuboidSelection(); // This will hide the ghost
+            activeGridManager.ClearCuboidSelection();
     }
 
     public void ToggleEditMode(bool state)

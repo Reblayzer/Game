@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using System.Collections;
 
 public class PlotSelector : MonoBehaviour
 {
@@ -13,6 +14,10 @@ public class PlotSelector : MonoBehaviour
   [Header("UI")]
   public Toggle mapToggle;
   public Button buildingsButton;
+
+  [Header("Plot Details Panels")]
+  public GameObject plotInfoPanel;
+  public GameObject buyPlotInfoPannel;
 
   void Awake()
   {
@@ -28,6 +33,15 @@ public class PlotSelector : MonoBehaviour
       buildingsButton.onClick.AddListener(OnBuildingsClicked);
 
     UpdateBuildingsButton();
+
+    StartCoroutine(SelectInitialPlot());
+  }
+
+  private IEnumerator SelectInitialPlot()
+  {
+    yield return new WaitUntil(() => buttonSelector.GetActiveGridManager() != null);
+
+    SelectPlot(buttonSelector.GetActiveGridManager());
   }
 
   public void SelectPlot(GridManager gm)
@@ -40,15 +54,30 @@ public class PlotSelector : MonoBehaviour
       toggle.ToggleButtons();
 
     buttonSelector.SetActiveGridManager(gm);
-
-    if (cameraController != null)
-      cameraController.target.position = gm.transform.position;
+    cameraController?.SetTargetPosition(gm.transform.position);
 
     buttonSelector.SelectByIndex(buttonSelector.CurrentIndex);
 
     Debug.Log($"📍 Selected Plot: {gm.plotRow},{gm.plotCol}");
 
     UpdateBuildingsButton();
+
+    switch (gm.ownership)
+    {
+      case Ownership.Yours:
+      case Ownership.Opponent:
+        plotInfoPanel?.SetActive(true);
+        buyPlotInfoPannel?.SetActive(false);
+        break;
+      case Ownership.Unclaimed:
+        plotInfoPanel?.SetActive(false);
+        buyPlotInfoPannel?.SetActive(true);
+        break;
+      default: // Opponent or Void
+        plotInfoPanel?.SetActive(false);
+        buyPlotInfoPannel?.SetActive(false);
+        break;
+    }
   }
 
   public void UpdateBuildingsButton()
@@ -71,9 +100,49 @@ public class PlotSelector : MonoBehaviour
   {
     var gm = buttonSelector.GetActiveGridManager();
     if (gm == null) return;
-
     buttonSelector.ToggleEditMode(true);
     gm.SetActive(true);
     gm.SetEditMode(true);
+  }
+
+  void Update()
+  {
+    HandlePlotHover();
+  }
+
+  private void HandlePlotHover()
+  {
+    if (EventSystem.current.IsPointerOverGameObject()) return;
+
+    var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+    int mask = LayerMask.GetMask("Plot");
+    if (Physics.Raycast(ray, out var hit, 100f, mask))
+    {
+      var hovered = hit.collider.GetComponentInParent<GridManager>();
+      var selected = buttonSelector.GetActiveGridManager();
+
+      if (hovered != null && hovered != selected)
+      {
+        foreach (var other in Object.FindObjectsByType<GridManager>(
+            FindObjectsInactive.Include,
+            FindObjectsSortMode.None))
+        {
+          if (other != selected)
+            other.HighlightPlot(buttonSelector.normalTileColor);
+        }
+
+        hovered.HighlightPlot(buttonSelector.hoverHighlightPlot);
+      }
+      return;
+    }
+
+    var active = buttonSelector.GetActiveGridManager();
+    foreach (var other in Object.FindObjectsByType<GridManager>(
+        FindObjectsInactive.Include,
+        FindObjectsSortMode.None))
+    {
+      if (other != active)
+        other.HighlightPlot(buttonSelector.normalTileColor);
+    }
   }
 }

@@ -13,33 +13,35 @@ public class PlotTriggerController : MonoBehaviour
         if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
             return;
 
-        // 2) Ignore if the map is up
-        if (MapUIController.I != null && MapUIController.I.IsMapOpen)
-            return;
-
-        // 3) Tell our central PlotSelector
+        // 2) Always tell our PlotSelector to switch plots
         var gm = GetComponentInParent<GridManager>();
         if (gm != null && PlotSelector.Instance != null)
             PlotSelector.Instance.SelectPlot(gm);
 
-        // 4) Marker‐canvas toggle
+        // 3) If the map is open, skip the little marker‐canvas toggle,
+        //    but we've already selected the plot above.
+        if (MapUIController.I != null && MapUIController.I.IsMapOpen)
+            return;
+
+        // 4) Now do your existing marker toggle:
         if (markerCanvas == null) return;
 
+        // clicking same plot again hides its marker
         if (markerCanvas.activeSelf)
         {
             markerCanvas.SetActive(false);
             return;
         }
 
-        // hide any others
-        var others = Object.FindObjectsByType<PlotTriggerController>(
-            FindObjectsInactive.Include,
-            FindObjectsSortMode.None
+        // hide any other
+        var all = Object.FindObjectsByType<PlotTriggerController>(
+            FindObjectsInactive.Include, FindObjectsSortMode.None
         );
-        foreach (var other in others)
+        foreach (var other in all)
             if (other != this && other.markerCanvas != null)
                 other.markerCanvas.SetActive(false);
 
+        // show ours
         markerCanvas.SetActive(true);
     }
 }

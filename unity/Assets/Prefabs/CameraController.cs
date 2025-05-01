@@ -19,9 +19,12 @@ public class CameraController : MonoBehaviour
     public float minVerticalAngle = 20f;
     public float maxVerticalAngle = 80f;
 
+    [Header("Pan Settings")]
+    [Tooltip("How fast the pivot moves to the new plot. Higher => snappier.")]
+    public float panSpeed = 8f;
+
     private Vector2 rotationVelocity;
     private Vector3 targetPosition;
-
     private Camera cam;
 
     void Start()
@@ -29,10 +32,12 @@ public class CameraController : MonoBehaviour
         cam = GetComponentInChildren<Camera>();
         if (target == null)
         {
-            GameObject pivot = GameObject.Find("CameraPivot");
-            if (pivot != null) target = pivot.transform;
+            var pivotGO = GameObject.Find("CameraPivot");
+            if (pivotGO != null)
+                target = pivotGO.transform;
         }
 
+        // initialize our stored destination
         if (target != null)
             targetPosition = target.position;
 
@@ -40,6 +45,9 @@ public class CameraController : MonoBehaviour
         UpdateCameraPosition();
     }
 
+    /// <summary>
+    /// Call this to tell the camera where it should move its pivot to.
+    /// </summary>
     public void SetTargetPosition(Vector3 newPosition)
     {
         targetPosition = newPosition;
@@ -49,44 +57,50 @@ public class CameraController : MonoBehaviour
     {
         if (target == null || cam == null) return;
 
-        // Scroll zoom
+        // 0) PAN the pivot toward our stored destination:
+        // ——————————————————————————————————————————————
+
+        // Instant snap (uncomment to use):
+        // target.position = targetPosition;
+
+        // Smooth pan (uncomment to use):
+        target.position = Vector3.Lerp(
+            target.position,
+            targetPosition,
+            Time.deltaTime * panSpeed
+        );
+
+        // 1) Zoom
         float scroll = Input.GetAxis("Mouse ScrollWheel");
         if (Mathf.Abs(scroll) > 0.02f)
-        {
             distance = Mathf.Clamp(distance - scroll * zoomSpeed, minDistance, maxDistance);
-        }
 
-        // Right-click rotation input
+        // 2) Rotation on right-drag
         if (Input.GetMouseButton(1))
         {
-            float mouseX = Input.GetAxis("Mouse X");
-            float mouseY = -Input.GetAxis("Mouse Y");
-
-            rotationVelocity.x = mouseX * rotationSpeed * dragSensitivity;
-            rotationVelocity.y = mouseY * rotationSpeed * dragSensitivity;
+            float mX = Input.GetAxis("Mouse X");
+            float mY = -Input.GetAxis("Mouse Y");
+            rotationVelocity.x = mX * rotationSpeed * dragSensitivity;
+            rotationVelocity.y = mY * rotationSpeed * dragSensitivity;
         }
         else
         {
             rotationVelocity = Vector2.Lerp(rotationVelocity, Vector2.zero, Time.deltaTime * 5f);
         }
 
-        // Update angles
         horizontalAngle += rotationVelocity.x;
         verticalAngle = Mathf.Clamp(verticalAngle + rotationVelocity.y, minVerticalAngle, maxVerticalAngle);
 
+        // 3) Finally place & aim the camera
         UpdateCameraPosition();
     }
 
     void UpdateCameraPosition()
     {
         if (target == null) return;
-
-        // Calculate rotation based on vertical + horizontal angles
-        Quaternion rotation = Quaternion.Euler(verticalAngle, horizontalAngle, 0);
-        Vector3 direction = rotation * Vector3.forward;
-
-        // Position = target - direction * distance
-        transform.position = target.position - direction * distance;
+        Quaternion rot = Quaternion.Euler(verticalAngle, horizontalAngle, 0f);
+        Vector3 dir = rot * Vector3.forward;
+        transform.position = target.position - dir * distance;
         transform.LookAt(target.position);
     }
 }
