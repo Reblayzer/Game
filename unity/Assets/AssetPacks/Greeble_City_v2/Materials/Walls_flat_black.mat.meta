@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 63c1889f02b2b3d4fa53107712c6c606
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 178652
+  packageName: Greeble City v2
+  packageVersion: 1.5
+  assetPath: Assets/AssetPacks/Greeble_City_v2/Materials/Walls_flat_black.mat
+  uploadId: 392079

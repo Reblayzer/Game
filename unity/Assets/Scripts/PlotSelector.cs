@@ -2,10 +2,12 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using System.Collections;
+using System;
 
 public class PlotSelector : MonoBehaviour
 {
   public static PlotSelector Instance { get; private set; }
+  public event Action<GridManager> onPlotChanged;
 
   [Header("Wiring")]
   public BuildingButtonSelector buttonSelector;
@@ -63,7 +65,7 @@ public class PlotSelector : MonoBehaviour
 
     buildInfoPanel?.SetActive(false);
 
-    var panelToggle = Object.FindFirstObjectByType<BuildingButtonToggle>();
+    var panelToggle = UnityEngine.Object.FindFirstObjectByType<BuildingButtonToggle>();
     if (panelToggle != null && panelToggle.IsVisible())
       panelToggle.ToggleButtons();
 
@@ -91,6 +93,7 @@ public class PlotSelector : MonoBehaviour
         buyPlotInfoPanel?.SetActive(false);
         break;
     }
+    onPlotChanged?.Invoke(gm);
   }
 
   public void UpdateBuildingsButton()
@@ -146,7 +149,7 @@ public class PlotSelector : MonoBehaviour
 
       if (hovered != null && hovered != selected)
       {
-        foreach (var other in Object.FindObjectsByType<GridManager>(
+        foreach (var other in UnityEngine.Object.FindObjectsByType<GridManager>(
             FindObjectsInactive.Include,
             FindObjectsSortMode.None))
         {
@@ -160,7 +163,7 @@ public class PlotSelector : MonoBehaviour
     }
 
     var active = buttonSelector.GetActiveGridManager();
-    foreach (var other in Object.FindObjectsByType<GridManager>(
+    foreach (var other in UnityEngine.Object.FindObjectsByType<GridManager>(
         FindObjectsInactive.Include,
         FindObjectsSortMode.None))
     {

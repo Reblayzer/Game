@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -56,6 +57,8 @@ public class GridManager : MonoBehaviour
     public GameObject unclaimedMarkerCanvasPrefab;
     public GameObject abandonedMarkerCanvasPrefab;
     public GameObject opponentMarkerCanvasPrefab;
+
+    public event Action OnCuboidPlaced;
 
     private AudioSource audioSource;
     private bool[,] occupiedTiles;
@@ -226,7 +229,7 @@ public class GridManager : MonoBehaviour
 
         if (placementSound != null && audioSource != null)
         {
-            audioSource.pitch = Random.Range(0.95f, 1.05f);
+            audioSource.pitch = UnityEngine.Random.Range(0.95f, 1.05f);
             audioSource.PlayOneShot(placementSound);
         }
 
@@ -236,6 +239,7 @@ public class GridManager : MonoBehaviour
             GameObject vfx = Instantiate(current.shockwavePrefab, effectPos, Quaternion.identity);
             Destroy(vfx, 2f);
         }
+        OnCuboidPlaced?.Invoke();
     }
 
     private void SetLayerRecursive(GameObject obj, int layer)

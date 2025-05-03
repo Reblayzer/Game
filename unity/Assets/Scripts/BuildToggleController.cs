@@ -5,24 +5,18 @@ using UnityEngine.UI;
 [RequireComponent(typeof(Toggle))]
 public class BuildToggleController : MonoBehaviour
 {
-    [Header("UI References")]
+    [Header("UI References (optional)")]
     public Toggle buildToggle;
     public GameObject scrollView;
     public GameObject blueprintInfoContainer;
+
+    [Header("Panels")]
     public GameObject plotInfoPanel;
     public GameObject buyPlotInfoPanel;
     public GameObject buildInfoPanel;
 
     void Awake()
     {
-        // --- clear any “Missing” pointers so we don't crash below ---
-        try { var _ = scrollView; }
-        catch (UnassignedReferenceException) { scrollView = null; }
-
-        try { var _ = blueprintInfoContainer; }
-        catch (UnassignedReferenceException) { blueprintInfoContainer = null; }
-
-        // now safe to wire up the toggle
         if (buildToggle == null)
             buildToggle = GetComponent<Toggle>();
 
@@ -38,7 +32,6 @@ public class BuildToggleController : MonoBehaviour
 
     private void OnBuildToggleChanged(bool isOn)
     {
-        // scrollView and blueprintInfoContainer may now be *null* without crashing
         if (scrollView != null) scrollView.SetActive(isOn);
         if (blueprintInfoContainer != null) blueprintInfoContainer.SetActive(isOn);
 
@@ -48,16 +41,10 @@ public class BuildToggleController : MonoBehaviour
             buyPlotInfoPanel?.SetActive(false);
             buildInfoPanel?.SetActive(false);
 
-            UnsubscribeBlueprintToggles();
             SubscribeBlueprintToggles();
         }
         else
         {
-            // turn off any individual blueprint toggles living under scrollView
-            if (scrollView != null)
-                foreach (var tb in scrollView.GetComponentsInChildren<Toggle>())
-                    tb.isOn = false;
-
             UnsubscribeBlueprintToggles();
 
             plotInfoPanel?.SetActive(true);
@@ -94,21 +81,34 @@ public class BuildToggleController : MonoBehaviour
             buyPlotInfoPanel?.SetActive(false);
             buildInfoPanel?.SetActive(true);
         }
-        else if (blueprintInfoContainer != null)
+        else
         {
-            // if none of the blueprint‐toggles are still on, revert to plot info
-            bool anyLeftOn = false;
-            foreach (var tb in blueprintInfoContainer.GetComponentsInChildren<Toggle>())
+            bool anyLeft = false;
+            if (blueprintInfoContainer != null)
             {
-                if (tb.isOn) { anyLeftOn = true; break; }
+                foreach (var tb in blueprintInfoContainer.GetComponentsInChildren<Toggle>())
+                    if (tb.isOn) { anyLeft = true; break; }
             }
 
-            if (!anyLeftOn)
+            if (!anyLeft)
             {
                 buildInfoPanel?.SetActive(false);
                 plotInfoPanel?.SetActive(true);
                 buyPlotInfoPanel?.SetActive(false);
             }
         }
+    }
+
+    public void HideAllBuildUI()
+    {
+        if (scrollView != null) scrollView.SetActive(false);
+        if (blueprintInfoContainer != null)
+        {
+            blueprintInfoContainer.SetActive(false);
+            // clear all toggles so none stay checked
+            foreach (var tb in blueprintInfoContainer.GetComponentsInChildren<Toggle>())
+                tb.isOn = false;
+        }
+        buildInfoPanel?.SetActive(false);
     }
 }
