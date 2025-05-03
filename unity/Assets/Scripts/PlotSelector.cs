@@ -13,11 +13,15 @@ public class PlotSelector : MonoBehaviour
 
   [Header("UI")]
   public Toggle mapToggle;
+  public Toggle buildToggle;
   public Button buildingsButton;
 
   [Header("Plot Details Panels")]
   public GameObject plotInfoPanel;
-  public GameObject buyPlotInfoPannel;
+  public GameObject buyPlotInfoPanel;
+
+  [Header("Building Details Panel")]
+  public GameObject buildInfoPanel;
 
   void Awake()
   {
@@ -25,6 +29,8 @@ public class PlotSelector : MonoBehaviour
 
     if (mapToggle != null)
       mapToggle.onValueChanged.AddListener(_ => UpdateBuildingsButton());
+
+    UpdateBuildingsButton();
   }
 
   void Start()
@@ -47,35 +53,42 @@ public class PlotSelector : MonoBehaviour
   public void SelectPlot(GridManager gm)
   {
     if (buttonSelector.GetActiveGridManager() == gm)
+    {
+      UpdateBuildingsButton();
       return;
+    }
 
-    var toggle = Object.FindFirstObjectByType<BuildingButtonToggle>();
-    if (toggle != null && toggle.IsVisible())
-      toggle.ToggleButtons();
+    if (buildToggle != null && buildToggle.isOn && gm.ownership != Ownership.Yours)
+      buildToggle.isOn = false;
+
+    buildInfoPanel?.SetActive(false);
+
+    var panelToggle = Object.FindFirstObjectByType<BuildingButtonToggle>();
+    if (panelToggle != null && panelToggle.IsVisible())
+      panelToggle.ToggleButtons();
 
     buttonSelector.SetActiveGridManager(gm);
+
     cameraController?.SetTargetPosition(gm.transform.position);
 
     buttonSelector.SelectByIndex(buttonSelector.CurrentIndex);
 
     Debug.Log($"📍 Selected Plot: {gm.plotRow},{gm.plotCol}");
 
-    UpdateBuildingsButton();
-
     switch (gm.ownership)
     {
       case Ownership.Yours:
       case Ownership.Opponent:
         plotInfoPanel?.SetActive(true);
-        buyPlotInfoPannel?.SetActive(false);
+        buyPlotInfoPanel?.SetActive(false);
         break;
       case Ownership.Unclaimed:
         plotInfoPanel?.SetActive(false);
-        buyPlotInfoPannel?.SetActive(true);
+        buyPlotInfoPanel?.SetActive(true);
         break;
-      default: // Opponent or Void
+      default:
         plotInfoPanel?.SetActive(false);
-        buyPlotInfoPannel?.SetActive(false);
+        buyPlotInfoPanel?.SetActive(false);
         break;
     }
   }
@@ -92,9 +105,19 @@ public class PlotSelector : MonoBehaviour
       if (ptc != null) owner = ptc.ownership;
     }
 
-    bool shouldShow = !mapOpen && gm != null && owner == Ownership.Yours;
-    buildingsButton?.gameObject.SetActive(shouldShow);
+    bool canBuild = (gm != null && owner == Ownership.Yours);
+
+    buildingsButton?.gameObject.SetActive(canBuild && !mapOpen);
+
+    if (buildToggle != null)
+    {
+      buildToggle.interactable = canBuild;
+
+      if (!canBuild && buildToggle.isOn)
+        buildToggle.isOn = false;
+    }
   }
+
 
   private void OnBuildingsClicked()
   {

@@ -33,11 +33,13 @@ public class BuildingButtonSelector : MonoBehaviour
     public Color ghostCanNotPlaceColor;
     public Color hoverHighlightPlot;
 
-    [Header("the “owned”–plot label")]
+    [Header("the “owned” plot label")]
     public TMP_Text ownedPlotLabel;
 
-    [Header("the “buy”–plot label")]
+    [Header("the “buy” plot label")]
     public TMP_Text buyPlotLabel;
+    [Header("the “build” plot label")]
+    public TMP_Text buildPlotLabel;
     private int currentIndex = -1;
     private GridManager activeGridManager;
     private GridManager currentlyHoveredPlot;
@@ -90,10 +92,18 @@ public class BuildingButtonSelector : MonoBehaviour
             int col = gm.plotCol;
             label.text = $"{plotName} {row:00} | {col:00}";
         }
+
+        if (buildPlotLabel != null)
+        {
+            buildPlotLabel.text = label.text;
+        }
+
         UpdatePanelButtonsVisibility();
 
         if (currentIndex >= 0 && currentIndex < buildingButtons.Count)
             activeGridManager.SetSelectedCuboid(currentIndex);
+
+        PlotSelector.Instance?.UpdateBuildingsButton();
     }
 
     private void UpdatePanelButtonsVisibility()
@@ -157,39 +167,46 @@ public class BuildingButtonSelector : MonoBehaviour
 
     private void HandlePlotHover()
     {
-        if (EventSystem.current.IsPointerOverGameObject())
-            return;
+        if (EventSystem.current.IsPointerOverGameObject()) return;
 
-        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-        if (Physics.Raycast(ray, out RaycastHit hit, 100f, LayerMask.GetMask("Plot")))
+        var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        int mask = LayerMask.GetMask("Plot");
+        if (Physics.Raycast(ray, out var hit, 100f, mask))
         {
-            GridManager hovered = hit.collider.GetComponentInParent<GridManager>();
-            GridManager selected = GetActiveGridManager();
+            var hovered = hit.collider.GetComponentInParent<GridManager>();
+            var selected = activeGridManager;
 
-            if (hovered != null)
+            if (hovered != null && hovered != selected)
             {
-                if (currentlyHoveredPlot != null && currentlyHoveredPlot != hovered)
-                    RestorePlotBaseColor(currentlyHoveredPlot); // Always restore old
-
-                if (hovered != selected)
+                // Restore every non‐selected plot to its own base colour:
+                foreach (var other in Object.FindObjectsByType<GridManager>(
+                    FindObjectsInactive.Include, FindObjectsSortMode.None))
                 {
-                    currentlyHoveredPlot = hovered;
-                    currentlyHoveredPlot.HighlightPlot(hoverHighlightPlot);
-                }
-                else
-                {
-                    currentlyHoveredPlot = null; // Stop tracking if hovering selected
+                    if (other == selected) continue;
+
+                    Color baseCol = other.plotType == PlotType.Abandoned ? abandonedPlotColor
+                                 : other.plotType == PlotType.Void ? voidPlotColor
+                                 : normalTileColor;
+                    other.HighlightPlot(baseCol);
                 }
 
-                return;
+                // Highlight the one under the cursor:
+                hovered.HighlightPlot(hoverHighlightPlot);
             }
+            return;
         }
 
-        // If we're not hovering any plot
-        if (currentlyHoveredPlot != null)
+        // If we're not hovering any plot, restore all non‐active plots
+        var active = activeGridManager;
+        foreach (var other in Object.FindObjectsByType<GridManager>(
+            FindObjectsInactive.Include, FindObjectsSortMode.None))
         {
-            RestorePlotBaseColor(currentlyHoveredPlot);
-            currentlyHoveredPlot = null;
+            if (other == active) continue;
+
+            Color baseCol = other.plotType == PlotType.Abandoned ? abandonedPlotColor
+                         : other.plotType == PlotType.Void ? voidPlotColor
+                         : normalTileColor;
+            other.HighlightPlot(baseCol);
         }
     }
 
