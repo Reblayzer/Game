@@ -101,11 +101,11 @@ public class BuildToggleController : MonoBehaviour
 
     public void HideAllBuildUI()
     {
+        Debug.Log("🗑️  HideAllBuildUI()");
         if (scrollView != null) scrollView.SetActive(false);
         if (blueprintInfoContainer != null)
         {
             blueprintInfoContainer.SetActive(false);
-            // clear all toggles so none stay checked
             foreach (var tb in blueprintInfoContainer.GetComponentsInChildren<Toggle>())
                 tb.isOn = false;
         }

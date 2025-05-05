@@ -15,6 +15,7 @@ public class BuildButtonController : MonoBehaviour
   {
     buildButton.onClick.AddListener(OnBuildClicked);
     _toggleCtrl = plotSelector.buildToggle.GetComponent<BuildToggleController>();
+    Debug.Log("_toggleCtrl = " + (_toggleCtrl == null ? "NULL!" : _toggleCtrl.name));
   }
 
   void OnEnable() => PlotSelector.Instance.onPlotChanged += PlotChanged;
@@ -35,9 +36,10 @@ public class BuildButtonController : MonoBehaviour
   {
     if (_activeGrid == null) return;
 
+    Debug.Log("🗑️  HideAllBuildUI()");
     _toggleCtrl.HideAllBuildUI();
 
-    plotSelector.buildInfoPanel.SetActive(false);
+    plotSelector.buildToggle.isOn = false;
 
     buildingSelector.ToggleEditMode(true);
     _activeGrid.SetEditMode(true);
