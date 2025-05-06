@@ -10,42 +10,56 @@ public class BuildButtonController : MonoBehaviour
   public BuildingButtonSelector buildingSelector;
 
   BuildToggleController _toggleCtrl;
+  private BuildingButtonSelector _buildingSelector;
 
   void Awake()
   {
-    _toggleCtrl = plotSelector.buildToggle.GetComponent<BuildToggleController>();
+    // 1) grab references
+    _toggleCtrl = plotSelector.buildToggle
+                  .GetComponent<BuildToggleController>();
+    _buildingSelector = plotSelector.buttonSelector;
+
     buildButton.onClick.AddListener(OnBuildClicked);
   }
 
-  void OnBuildClicked()
+  void OnDestroy()
   {
-    // 1) grab the currently selected plot
+    buildButton.onClick.RemoveListener(OnBuildClicked);
+  }
+
+  private void OnBuildClicked()
+  {
+    // 1) grab the currently selected plot & blueprint
     GridManager gm = plotSelector.buttonSelector.GetActiveGridManager();
-    if (gm == null) return;
+    int idx = buildingSelector.CurrentIndex;
+    if (gm == null || idx < 0 || idx >= gm.cuboidTypes.Length) return;
 
-    Debug.Log("🗑️  HideAllBuildUI()");
+    // 2) hide the blueprint UI
+    _toggleCtrl.HideBlueprintInfoContainer();
 
-    // 2) hide the Blueprint UI
-    _toggleCtrl.HideAllBuildUI();
-    plotSelector.buildToggle.isOn = false;
-
-    // 3) enter edit mode
+    // 3) enter build‐mode on both UI and grid
     buildingSelector.ToggleEditMode(true);
+    gm.SetActive(true);       // <— add this!
     gm.SetEditMode(true);
 
-    // 4) subscribe to the placement event
+    // 4) tell the grid which cuboid we want (this sets hasSelectedCuboid = true)
+    gm.SetSelectedCuboid(idx);
+
+    // 5) subscribe so we can exit build‐mode after placement
     gm.OnCuboidPlaced += OnCuboidPlaced;
   }
 
-  void OnCuboidPlaced()
+  private void OnCuboidPlaced()
   {
-    // once they place a cuboid, leave edit mode
-    GridManager gm = plotSelector.buttonSelector.GetActiveGridManager();
+    // once they place, leave edit‐mode everywhere
+    GridManager gm = plotSelector
+                     .buttonSelector
+                     .GetActiveGridManager();
     if (gm != null)
     {
-      buildingSelector.ToggleEditMode(false);
+      _buildingSelector.ToggleEditMode(false);
       gm.SetEditMode(false);
-      gm.OnCuboidPlaced -= OnCuboidPlaced;   // unsubscribe
+      gm.OnCuboidPlaced -= OnCuboidPlaced;
     }
   }
 }

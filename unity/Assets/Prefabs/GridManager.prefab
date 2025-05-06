@@ -46,11 +46,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ownership: 0
+  plotRow: 0
+  plotCol: 0
   gridSize: 7
   tilePrefab: {fileID: 2614781486797241175, guid: a4e130ce90dd3c6479a6659a18b35146, type: 3}
   cuboidTypes:
   - name: 2x1x1
-    prefab: {fileID: 4366773310149235799, guid: f448cab1e41f74746ad26eb0a19bb8df, type: 3}
+    prefab: {fileID: 8814042518244966010, guid: 568e18e70d8c8ad4482a72f57a6aa430, type: 3}
     shockwavePrefab: {fileID: 1921079115439858272, guid: 1fb978dfcdeaeae40a460cdbd681085f, type: 3}
     length: 2
     width: 1

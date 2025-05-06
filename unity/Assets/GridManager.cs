@@ -467,4 +467,32 @@ public class GridManager : MonoBehaviour
         upgradeButton?.gameObject.SetActive(false);
         SelectableCuboid.currentlySelectedCuboid = null;
     }
+
+    void Update()
+    {
+        // Only run ghost‐preview if we’re initialized, active, in edit mode, and have picked a cuboid
+        if (!initialized || !IsActive || !isEditMode || !hasSelectedCuboid)
+            return;
+
+        // Raycast against your tile layer
+        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        int tileMask = LayerMask.GetMask("Tile");
+        if (!Physics.Raycast(ray, out var hit, Mathf.Infinity, tileMask))
+            return;
+
+        // If we hit one of our Tile objects, show preview there
+        var tile = hit.collider.GetComponent<Tile>();
+        if (tile != null && tile.GridManager == this)
+        {
+            // highlight + ghost
+            bool valid = HighlightTiles(tile.gridPosition.x, tile.gridPosition.y);
+            ShowGhost(
+                tile.gridPosition.x,
+                tile.gridPosition.y,
+                cuboidTypes[selectedIndex],
+                isRotated,
+                valid
+            );
+        }
+    }
 }
