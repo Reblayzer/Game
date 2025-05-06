@@ -130,45 +130,4 @@ public class PlotSelector : MonoBehaviour
     gm.SetActive(true);
     gm.SetEditMode(true);
   }
-
-  void Update()
-  {
-    HandlePlotHover();
-  }
-
-  private void HandlePlotHover()
-  {
-    if (EventSystem.current.IsPointerOverGameObject()) return;
-
-    var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-    int mask = LayerMask.GetMask("Plot");
-    if (Physics.Raycast(ray, out var hit, 100f, mask))
-    {
-      var hovered = hit.collider.GetComponentInParent<GridManager>();
-      var selected = buttonSelector.GetActiveGridManager();
-
-      if (hovered != null && hovered != selected)
-      {
-        foreach (var other in UnityEngine.Object.FindObjectsByType<GridManager>(
-            FindObjectsInactive.Include,
-            FindObjectsSortMode.None))
-        {
-          if (other != selected)
-            other.HighlightPlot(buttonSelector.normalTileColor);
-        }
-
-        hovered.HighlightPlot(buttonSelector.hoverHighlightPlot);
-      }
-      return;
-    }
-
-    var active = buttonSelector.GetActiveGridManager();
-    foreach (var other in UnityEngine.Object.FindObjectsByType<GridManager>(
-        FindObjectsInactive.Include,
-        FindObjectsSortMode.None))
-    {
-      if (other != active)
-        other.HighlightPlot(buttonSelector.normalTileColor);
-    }
-  }
 }
