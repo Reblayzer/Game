@@ -1,0 +1,96 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &2453881796885351115
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1375800640755544854}
+  m_Layer: 0
+  m_Name: MiningDrill01
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1375800640755544854
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2453881796885351115}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 882.9412, y: -295.00986, z: -1468.7921}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 6435086253077400140}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1001 &1897656712509063644
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 1375800640755544854}
+    m_Modifications:
+    - target: {fileID: 4835687750865816464, guid: 45c058045cfc8aa4faa561b41ea1e936, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -291.84125
+      objectReference: {fileID: 0}
+    - target: {fileID: 4835687750865816464, guid: 45c058045cfc8aa4faa561b41ea1e936, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 273.40985
+      objectReference: {fileID: 0}
+    - target: {fileID: 4835687750865816464, guid: 45c058045cfc8aa4faa561b41ea1e936, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -186.90796
+      objectReference: {fileID: 0}
+    - target: {fileID: 4835687750865816464, guid: 45c058045cfc8aa4faa561b41ea1e936, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4835687750865816464, guid: 45c058045cfc8aa4faa561b41ea1e936, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4835687750865816464, guid: 45c058045cfc8aa4faa561b41ea1e936, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4835687750865816464, guid: 45c058045cfc8aa4faa561b41ea1e936, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4835687750865816464, guid: 45c058045cfc8aa4faa561b41ea1e936, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4835687750865816464, guid: 45c058045cfc8aa4faa561b41ea1e936, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4835687750865816464, guid: 45c058045cfc8aa4faa561b41ea1e936, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4835687750866245552, guid: 45c058045cfc8aa4faa561b41ea1e936, type: 3}
+      propertyPath: m_Name
+      value: Temple_headquarters (1)
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 45c058045cfc8aa4faa561b41ea1e936, type: 3}
+--- !u!4 &6435086253077400140 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 4835687750865816464, guid: 45c058045cfc8aa4faa561b41ea1e936, type: 3}
+  m_PrefabInstance: {fileID: 1897656712509063644}
+  m_PrefabAsset: {fileID: 0}
