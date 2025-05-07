@@ -77,6 +77,8 @@ public class GridManager : MonoBehaviour
     private bool placementPhase = false;
 
     public bool InPlacementPhase => placementPhase;
+    private int _placedMask;
+    private int _tileMask;
 
     public bool CanPlace =>
         buildingButtonsPanel != null &&
@@ -90,6 +92,11 @@ public class GridManager : MonoBehaviour
 
     void Start()
     {
+        // 0) cache the “Placed” layer mask at runtime
+        _placedMask = 1 << LayerMask.NameToLayer("Placed");
+        _tileMask = 1 << LayerMask.NameToLayer("Tile");
+
+        // 1) set up your PlotTrigger collider
         var triggerZone = new GameObject("PlotTrigger");
         triggerZone.transform.SetParent(transform);
         triggerZone.transform.localPosition = Vector3.zero;
@@ -105,11 +112,10 @@ public class GridManager : MonoBehaviour
         var ptc = triggerZone.AddComponent<PlotTriggerController>();
         ptc.ownership = ownership;
 
+        // 2) instantiate your world‐marker canvas
         GameObject prefabToUse = null;
         if (plotType == PlotType.Abandoned)
-        {
             prefabToUse = abandonedMarkerCanvasPrefab;
-        }
         else if (plotType == PlotType.Normal)
         {
             switch (ownership)
@@ -130,11 +136,13 @@ public class GridManager : MonoBehaviour
             ptc.markerCanvas = canv;
         }
 
+        // 3) build the tile grid
         float offset = gridSize / 2f - 0.5f;
         occupiedTiles = new bool[gridSize, gridSize];
         tileGrid = new Tile[gridSize, gridSize];
 
         for (int x = 0; x < gridSize; x++)
+        {
             for (int z = 0; z < gridSize; z++)
             {
                 Vector3 pos = transform.position + new Vector3(x - offset, 0, z - offset);
@@ -145,7 +153,9 @@ public class GridManager : MonoBehaviour
                 tileScript.Init(new Vector2Int(x, z), this);
                 tileGrid[x, z] = tileScript;
             }
+        }
 
+        // 4) grab your AudioSource and turn UI panels off
         audioSource = GetComponent<AudioSource>();
         if (selectedCuboidUIPanel != null) selectedCuboidUIPanel.SetActive(false);
         if (buildingButtonsPanel != null) buildingButtonsPanel.SetActive(true);
@@ -182,65 +192,64 @@ public class GridManager : MonoBehaviour
 
     public void TryPlaceCuboidAt(int startX, int startZ)
     {
-        if (!CanPlace) return;
+        // 0) safety checks
         if (cuboidTypes == null || cuboidTypes.Length == 0) return;
         if (selectedIndex < 0 || selectedIndex >= cuboidTypes.Length) return;
+        if (!CanPlace) return;
 
+        // 1) dimensions
         CuboidType current = cuboidTypes[selectedIndex];
         int length = isRotated ? current.width : current.length;
         int width = isRotated ? current.length : current.width;
 
+        // 2) grid occupancy
         for (int x = startX; x < startX + length; x++)
-        {
             for (int z = startZ; z < startZ + width; z++)
-            {
-                if (x < 0 || z < 0 || x >= gridSize || z >= gridSize)
+                if (x < 0 || z < 0 || x >= gridSize || z >= gridSize || occupiedTiles[x, z])
                     return;
 
-                if (occupiedTiles[x, z])
-                    return;
-            }
-        }
-
+        // 3) world‐space box for OverlapBox
         float offset = gridSize / 2f - 0.5f;
-        Vector3 spawnPos = transform.position + new Vector3(
-            startX + length / 2f - 0.5f - offset,
-            current.height / 2f,
-            startZ + width / 2f - 0.5f - offset
+        Vector3 center = transform.position + new Vector3(
+            startX + length * 0.5f - 0.5f - offset,
+            current.height * 0.5f,
+            startZ + width * 0.5f - 0.5f - offset
         );
+        Vector3 halfExtents = new Vector3(length * 0.5f, current.height * 0.5f, width * 0.5f);
+        Quaternion rot = isRotated ? Quaternion.Euler(0, 90, 0) : Quaternion.identity;
 
-        Quaternion rotation = isRotated ? Quaternion.Euler(0, 90, 0) : Quaternion.identity;
-        GameObject placed = Instantiate(current.prefab, spawnPos, rotation);
+        // 4) overlap test against already‐placed buildings
+        if (Physics.OverlapBox(center, halfExtents, rot, _placedMask).Length > 0)
+            return;
 
+        // 5) instantiate exactly once
+        GameObject placed = Instantiate(current.prefab, center, rot);
         SetLayerRecursive(placed, LayerMask.NameToLayer("Placed"));
 
-        SelectableCuboid selectable = placed.AddComponent<SelectableCuboid>();
-        selectable.cuboidName = current.name;
-        selectable.infoPanel = SelectedCuboidUIPanel;
-        selectable.infoDisplay = SelectedCuboidInfoText;
-        selectable.upgradeButton = UpgradeButton;
-        selectable.Init(this);
+        // 6) hook up selectable
+        var sel = placed.AddComponent<SelectableCuboid>();
+        sel.cuboidName = current.name;
+        sel.infoPanel = SelectedCuboidUIPanel;
+        sel.infoDisplay = SelectedCuboidInfoText;
+        sel.upgradeButton = UpgradeButton;
+        sel.Init(this);
 
+        // 7) mark grid cells
         for (int x = startX; x < startX + length; x++)
-        {
             for (int z = startZ; z < startZ + width; z++)
-            {
                 occupiedTiles[x, z] = true;
-            }
-        }
 
+        // 8) cleanup
         ClearHighlights();
-
         if (placementSound != null && audioSource != null)
         {
             audioSource.pitch = UnityEngine.Random.Range(0.95f, 1.05f);
             audioSource.PlayOneShot(placementSound);
         }
-
         if (current.shockwavePrefab != null)
         {
-            Vector3 effectPos = spawnPos - new Vector3(0, current.height / 2f - 0.2f, 0);
-            GameObject vfx = Instantiate(current.shockwavePrefab, effectPos, Quaternion.identity);
+            Vector3 vfxPos = center - new Vector3(0, current.height * 0.5f - 0.2f, 0);
+            var vfx = Instantiate(current.shockwavePrefab, vfxPos, Quaternion.identity);
             Destroy(vfx, 2f);
         }
         OnCuboidPlaced?.Invoke();
@@ -269,20 +278,20 @@ public class GridManager : MonoBehaviour
             hasSelectedCuboid = true;
             ClearHighlights();
 
-            // Force immediate ghost preview
             if (IsActive && isEditMode && placementPhase)
             {
                 Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
                 RaycastHit hit;
-                int mask = ~LayerMask.GetMask("Ghost", "Ignore Raycast");
+                int tileMask = LayerMask.GetMask("Tile");
 
-                if (Physics.Raycast(ray, out hit, 100f, mask))
+                if (Physics.Raycast(ray, out hit, 100f, tileMask))
                 {
-                    Tile tile = hit.collider.GetComponent<Tile>();
+                    var tile = hit.collider.GetComponent<Tile>();
                     if (tile != null && tile.GridManager == this)
                     {
                         bool isValid = HighlightTiles(tile.gridPosition.x, tile.gridPosition.y);
-                        ShowGhost(tile.gridPosition.x, tile.gridPosition.y, cuboidTypes[selectedIndex], isRotated, isValid);
+                        ShowGhost(tile.gridPosition.x, tile.gridPosition.y,
+                        cuboidTypes[selectedIndex], isRotated, isValid);
                     }
                 }
             }
@@ -304,32 +313,42 @@ public class GridManager : MonoBehaviour
         int width = isRotated ? current.length : current.width;
 
         bool validPlacement = true;
-
         for (int x = startX; x < startX + length; x++)
         {
             for (int z = startZ; z < startZ + width; z++)
             {
-                if (x >= gridSize || z >= gridSize || occupiedTiles[x, z])
+                if (x < 0 || z < 0 || x >= gridSize || z >= gridSize || occupiedTiles[x, z])
                 {
                     validPlacement = false;
                     break;
                 }
             }
+            if (!validPlacement) break;
         }
 
-        // ✅ Use the selector's ghost colors
+        if (validPlacement)
+        {
+            float offset = gridSize / 2f - 0.5f;
+            Vector3 center = transform.position + new Vector3(
+                startX + length * 0.5f - 0.5f - offset,
+                current.height * 0.5f,
+                startZ + width * 0.5f - 0.5f - offset
+            );
+            Vector3 halfExtents = new Vector3(length * 0.5f, current.height * 0.5f, width * 0.5f);
+            Quaternion rot = isRotated ? Quaternion.Euler(0, 90, 0) : Quaternion.identity;
+
+            if (Physics.OverlapBox(center, halfExtents, rot, _placedMask).Length > 0)
+                validPlacement = false;
+        }
+
         Color ghostColor = validPlacement
             ? buttonSelector.ghostCanPlaceColor
             : buttonSelector.ghostCanNotPlaceColor;
 
         for (int x = startX; x < startX + length; x++)
-        {
             for (int z = startZ; z < startZ + width; z++)
-            {
-                if (x < gridSize && z < gridSize)
+                if (x >= 0 && z >= 0 && x < gridSize && z < gridSize)
                     tileGrid[x, z]?.SetTemporaryHighlight(ghostColor);
-            }
-        }
 
         return validPlacement;
     }
