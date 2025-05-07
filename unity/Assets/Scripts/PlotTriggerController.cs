@@ -31,10 +31,12 @@ public class PlotTriggerController : MonoBehaviour
         if (MapUIController.I != null && MapUIController.I.IsMapOpen)
             return;
 
-        // 4) if build‐mode is ON, place instead of toggling markers
-        if (_buildToggle != null && _buildToggle.isOn && _grid.IsInEditMode())
+        if (_buildToggle != null
+            && _buildToggle.isOn
+            && _grid.IsInEditMode()
+            && _grid.InPlacementPhase)
         {
-            // Raycast down to get the tile you clicked
+            // raycast down to figure out which tile
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             if (Physics.Raycast(ray, out var hit, 100f,
                                 LayerMask.GetMask("Tile")))
@@ -51,13 +53,15 @@ public class PlotTriggerController : MonoBehaviour
             return;
         }
 
-        // 5) else, your normal marker‐toggle logic…
+        // 5) otherwise, do your normal marker-toggle logic:
         if (markerCanvas == null) return;
         if (markerCanvas.activeSelf)
         {
             markerCanvas.SetActive(false);
             return;
         }
+
+        // hide all other markers
         var all = Object.FindObjectsByType<PlotTriggerController>(
             FindObjectsInactive.Include, FindObjectsSortMode.None
         );

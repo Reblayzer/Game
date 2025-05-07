@@ -74,12 +74,16 @@ public class GridManager : MonoBehaviour
     private bool isEditMode = false;
     public int selectedIndex = 0;
     private Color currentHighlightColor;
+    private bool placementPhase = false;
+
+    public bool InPlacementPhase => placementPhase;
 
     public bool CanPlace =>
         buildingButtonsPanel != null &&
         buildingButtonsPanel.activeSelf &&
         hasSelectedCuboid &&
-        plotType == PlotType.Normal;
+        plotType == PlotType.Normal &&
+        placementPhase;
 
     public PlotType plotType = PlotType.Normal;
     public bool IsActive { get; private set; }
@@ -253,6 +257,12 @@ public class GridManager : MonoBehaviour
 
     public void SetSelectedCuboid(int index)
     {
+        if (placementPhase)
+        {
+            EndPlacementPhase();
+            ClearHighlights();
+        }
+
         if (index >= 0 && index < cuboidTypes.Length)
         {
             selectedIndex = index;
@@ -260,7 +270,7 @@ public class GridManager : MonoBehaviour
             ClearHighlights();
 
             // Force immediate ghost preview
-            if (IsActive && isEditMode)
+            if (IsActive && isEditMode && placementPhase)
             {
                 Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
                 RaycastHit hit;
@@ -471,7 +481,7 @@ public class GridManager : MonoBehaviour
     void Update()
     {
         // Only run ghost‐preview if we’re initialized, active, in edit mode, and have picked a cuboid
-        if (!initialized || !IsActive || !isEditMode || !hasSelectedCuboid)
+        if (!initialized || !IsActive || !isEditMode || !hasSelectedCuboid || !placementPhase)
             return;
 
         // Raycast against your tile layer
@@ -494,5 +504,15 @@ public class GridManager : MonoBehaviour
                 valid
             );
         }
+    }
+
+    public void StartPlacementPhase()
+    {
+        placementPhase = true;
+    }
+
+    public void EndPlacementPhase()
+    {
+        placementPhase = false;
     }
 }

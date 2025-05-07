@@ -61,14 +61,13 @@ public class BuildToggleController : MonoBehaviour
     {
         // Show/hide blueprint list only if it exists
         if (scrollView != null)
+        {
+            scrollViewToggleGroup?.SetAllTogglesOff();
             scrollView.SetActive(isOn);
+        }
 
         if (blueprintInfoContainer != null)
             blueprintInfoContainer.SetActive(isOn);
-
-        // clear any selected blueprint
-        if (scrollViewToggleGroup != null)
-            scrollViewToggleGroup.SetAllTogglesOff();
 
         if (isOn)
         {
@@ -140,5 +139,11 @@ public class BuildToggleController : MonoBehaviour
         {
             blueprintInfoContainer.SetActive(false);
         }
+    }
+
+    public void ClearBlueprintToggles()
+    {
+        blueprintInfoContainer?.SetActive(true);
+        scrollViewToggleGroup?.SetAllTogglesOff();
     }
 }
