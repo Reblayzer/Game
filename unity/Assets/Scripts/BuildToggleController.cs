@@ -19,24 +19,30 @@ public class BuildToggleController : MonoBehaviour
 
     void Awake()
     {
-        buildToggle ??= GetComponent<Toggle>();
+        // make sure we have our own Toggle
+        if (buildToggle == null)
+            buildToggle = GetComponent<Toggle>();
 
-        // pull the ToggleGroup straight from the ScrollView’s content
-        scrollViewToggleGroup = scrollView
-          ?.GetComponentInChildren<ToggleGroup>(includeInactive: true);
-
-        if (scrollViewToggleGroup == null)
-            Debug.LogWarning("No ToggleGroup found under ScrollView!", this);
-
-        buildToggle.onValueChanged.AddListener(OnBuildToggleChanged);
-
-        // wire each blueprint toggle callback
-        if (scrollViewToggleGroup != null)
+        // only fetch the ToggleGroup if someone wired up a ScrollView
+        if (scrollView != null)
         {
-            foreach (var tb in scrollViewToggleGroup.GetComponentsInChildren<Toggle>())
-                tb.onValueChanged.AddListener(OnBlueprintToggleChanged);
+            scrollViewToggleGroup =
+                scrollView.GetComponentInChildren<ToggleGroup>(includeInactive: true);
+
+            if (scrollViewToggleGroup == null)
+                Debug.LogWarning("No ToggleGroup found under ScrollView!", this);
+            else
+            {
+                // wire each blueprint‐list toggle
+                foreach (var tb in scrollViewToggleGroup.GetComponentsInChildren<Toggle>())
+                    tb.onValueChanged.AddListener(OnBlueprintToggleChanged);
+            }
         }
 
+        // only wire the build toggle callback once
+        buildToggle.onValueChanged.AddListener(OnBuildToggleChanged);
+
+        // initial state
         OnBuildToggleChanged(buildToggle.isOn);
     }
 
@@ -53,33 +59,38 @@ public class BuildToggleController : MonoBehaviour
 
     private void OnBuildToggleChanged(bool isOn)
     {
-        // Show/hide the list of blueprints and its info container
-        scrollView?.SetActive(isOn);
-        blueprintInfoContainer?.SetActive(isOn);
+        // Show/hide blueprint list only if it exists
+        if (scrollView != null)
+            scrollView.SetActive(isOn);
 
-        // Always clear any previously selected blueprint
-        scrollViewToggleGroup?.SetAllTogglesOff();
+        if (blueprintInfoContainer != null)
+            blueprintInfoContainer.SetActive(isOn);
+
+        // clear any selected blueprint
+        if (scrollViewToggleGroup != null)
+            scrollViewToggleGroup.SetAllTogglesOff();
 
         if (isOn)
         {
-            // Entering build mode: hide all world‐markers
+            // hide all world‐markers
             foreach (var pt in Object.FindObjectsByType<PlotTriggerController>(
                          FindObjectsInactive.Include, FindObjectsSortMode.None))
             {
-                pt.markerCanvas?.SetActive(false);
+                if (pt.markerCanvas != null)
+                    pt.markerCanvas.SetActive(false);
             }
 
-            // Show just the base plot info
-            buildInfoPanel?.SetActive(false);
-            buyPlotInfoPanel?.SetActive(false);
+            // show only the base plot info
             plotInfoPanel?.SetActive(true);
+            buyPlotInfoPanel?.SetActive(false);
+            buildInfoPanel?.SetActive(false);
         }
         else
         {
-            // Exiting build mode: reset panels
-            buildInfoPanel?.SetActive(false);
-            buyPlotInfoPanel?.SetActive(false);
+            // exiting build mode: back to base plot info
             plotInfoPanel?.SetActive(true);
+            buyPlotInfoPanel?.SetActive(false);
+            buildInfoPanel?.SetActive(false);
         }
     }
 
@@ -105,20 +116,22 @@ public class BuildToggleController : MonoBehaviour
 
     private void OnBlueprintToggleChanged(bool isOn)
     {
-        if (isOn)
+        if (!isOn)
         {
-            // A blueprint was selected → show build info
-            plotInfoPanel?.SetActive(false);
-            buyPlotInfoPanel?.SetActive(false);
-            buildInfoPanel?.SetActive(true);
+            // if nothing else is on, back to plot info
+            if (!(scrollViewToggleGroup?.ActiveToggles().Any() ?? false))
+            {
+                buildInfoPanel?.SetActive(false);
+                buyPlotInfoPanel?.SetActive(false);
+                plotInfoPanel?.SetActive(true);
+            }
+            return;
         }
-        else if (!(scrollViewToggleGroup?.ActiveToggles().Any() ?? false))
-        {
-            // No blueprint selected → back to plot info
-            buildInfoPanel?.SetActive(false);
-            buyPlotInfoPanel?.SetActive(false);
-            plotInfoPanel?.SetActive(true);
-        }
+
+        // picking a blueprint → show build info
+        plotInfoPanel?.SetActive(false);
+        buyPlotInfoPanel?.SetActive(false);
+        buildInfoPanel?.SetActive(true);
     }
 
     public void HideBlueprintInfoContainer()

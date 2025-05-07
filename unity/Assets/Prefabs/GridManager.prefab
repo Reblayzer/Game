@@ -51,24 +51,48 @@ MonoBehaviour:
   gridSize: 7
   tilePrefab: {fileID: 2614781486797241175, guid: a4e130ce90dd3c6479a6659a18b35146, type: 3}
   cuboidTypes:
-  - name: 2x1x1
+  - name: Warehouse
+    prefab: {fileID: 8814042518244966010, guid: 0c3eccd7f6f4d8d4aa2471d6fb1dcdc9, type: 3}
+    shockwavePrefab: {fileID: 1921079115439858272, guid: 0963d85dc2e22714397080e6a1d65095, type: 3}
+    length: 3
+    width: 3
+    height: 3
+  - name: MiningDrill
     prefab: {fileID: 8814042518244966010, guid: 568e18e70d8c8ad4482a72f57a6aa430, type: 3}
     shockwavePrefab: {fileID: 1921079115439858272, guid: 1fb978dfcdeaeae40a460cdbd681085f, type: 3}
     length: 2
     width: 1
     height: 1
-  - name: 1x3x1
-    prefab: {fileID: 8814042518244966010, guid: dde16322f26666745977cfe1fb4c3dcc, type: 3}
+  - name: SalvageStation
+    prefab: {fileID: 8814042518244966010, guid: 937b0e534595dac4abbe6c4e1adb9e5e, type: 3}
     shockwavePrefab: {fileID: 1921079115439858272, guid: 1fb978dfcdeaeae40a460cdbd681085f, type: 3}
-    length: 1
+    length: 2
+    width: 2
+    height: 1
+  - name: DeliveryStation
+    prefab: {fileID: 8814042518244966010, guid: 2f6d933b502b4914c818848ad78939eb, type: 3}
+    shockwavePrefab: {fileID: 1921079115439858272, guid: 1fb978dfcdeaeae40a460cdbd681085f, type: 3}
+    length: 4
     width: 1
     height: 3
-  - name: 3x1.5x3
-    prefab: {fileID: 8814042518244966010, guid: 0c3eccd7f6f4d8d4aa2471d6fb1dcdc9, type: 3}
-    shockwavePrefab: {fileID: 1921079115439858272, guid: 0963d85dc2e22714397080e6a1d65095, type: 3}
+  - name: Assembler
+    prefab: {fileID: 8814042518244966010, guid: 494cd19d21844784d87dc660465457b6, type: 3}
+    shockwavePrefab: {fileID: 1921079115439858272, guid: 1fb978dfcdeaeae40a460cdbd681085f, type: 3}
     length: 3
-    width: 3
+    width: 1
     height: 1
+  - name: AdvancedAssembler
+    prefab: {fileID: 8814042518244966010, guid: 43b1be3e56874774d958849668f71dba, type: 3}
+    shockwavePrefab: {fileID: 1921079115439858272, guid: 1fb978dfcdeaeae40a460cdbd681085f, type: 3}
+    length: 3
+    width: 1
+    height: 1
+  - name: 4x1x3
+    prefab: {fileID: 8814042518244966010, guid: 2f6d933b502b4914c818848ad78939eb, type: 3}
+    shockwavePrefab: {fileID: 1921079115439858272, guid: 1fb978dfcdeaeae40a460cdbd681085f, type: 3}
+    length: 4
+    width: 1
+    height: 3
   ghostMaterialValid: {fileID: 2100000, guid: 00bf977a22fd6824ab93e6cfb1547805, type: 2}
   ghostMaterialInvalid: {fileID: 2100000, guid: 6c860372803c5944c8c0d0fe819a57e6, type: 2}
   buildingButtonsPanel: {fileID: 2784434265855235292, guid: dba185dc3dd692e448b384f85a07f10e, type: 3}
