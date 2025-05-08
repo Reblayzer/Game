@@ -16,6 +16,9 @@ public class MarkerCanvasController : MonoBehaviour
 
     void OnMarkerClicked()
     {
+        if (PlotSelector.Instance.buildToggle.isOn)
+            return;
+
         if (MapUIController.I != null && MapUIController.I.IsMapOpen)
             return;
 

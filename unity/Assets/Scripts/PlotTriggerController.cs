@@ -39,42 +39,31 @@ public class PlotTriggerController : MonoBehaviour
 
     void OnMouseDown()
     {
-        // 1) ignore UI clicks
         if (EventSystem.current != null
             && EventSystem.current.IsPointerOverGameObject())
             return;
 
-        // 2) always re-select plot
         if (_grid != null)
             PlotSelector.Instance.SelectPlot(_grid);
 
-        // 3) if map is open, bail
         if (MapUIController.I != null && MapUIController.I.IsMapOpen)
             return;
 
-        if (_buildToggle != null
-            && _buildToggle.isOn
-            && _grid.IsInEditMode()
-            && _grid.InPlacementPhase)
+        if (_buildToggle != null && _buildToggle.isOn)
         {
-            // raycast down to figure out which tile
-            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-            if (Physics.Raycast(ray, out var hit, 100f,
-                                LayerMask.GetMask("Tile")))
+            if (_grid.IsInEditMode() && _grid.InPlacementPhase)
             {
-                var tile = hit.collider.GetComponent<Tile>();
-                if (tile != null && tile.GridManager == _grid)
+                Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+                if (Physics.Raycast(ray, out var hit, 100f, LayerMask.GetMask("Tile")))
                 {
-                    _grid.TryPlaceCuboidAt(
-                        tile.gridPosition.x,
-                        tile.gridPosition.y
-                    );
+                    var tile = hit.collider.GetComponent<Tile>();
+                    if (tile != null && tile.GridManager == _grid)
+                        _grid.TryPlaceCuboidAt(tile.gridPosition.x, tile.gridPosition.y);
                 }
             }
             return;
         }
 
-        // 5) otherwise, do your normal marker-toggle logic:
         if (markerCanvas == null) return;
         if (markerCanvas.activeSelf)
         {
@@ -82,13 +71,12 @@ public class PlotTriggerController : MonoBehaviour
             return;
         }
 
-        // hide all other markers
-        var all = Object.FindObjectsByType<PlotTriggerController>(
-            FindObjectsInactive.Include, FindObjectsSortMode.None
-        );
-        foreach (var other in all)
+        foreach (var other in Object.FindObjectsByType<PlotTriggerController>(
+                 FindObjectsInactive.Include, FindObjectsSortMode.None))
+        {
             if (other != this && other.markerCanvas != null)
                 other.markerCanvas.SetActive(false);
+        }
 
         markerCanvas.SetActive(true);
     }

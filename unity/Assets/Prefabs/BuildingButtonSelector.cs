@@ -167,46 +167,34 @@ public class BuildingButtonSelector : MonoBehaviour
 
     private void HandlePlotHover()
     {
-        if (EventSystem.current.IsPointerOverGameObject()) return;
+        if (EventSystem.current.IsPointerOverGameObject())
+            return;
 
         var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
         int mask = LayerMask.GetMask("Plot");
-        if (Physics.Raycast(ray, out var hit, 100f, mask))
-        {
-            var hovered = hit.collider.GetComponentInParent<GridManager>();
-            var selected = activeGridManager;
 
-            if (hovered != null && hovered != selected)
-            {
-                // Restore every non‐selected plot to its own base colour:
-                foreach (var other in Object.FindObjectsByType<GridManager>(
-                    FindObjectsInactive.Include, FindObjectsSortMode.None))
-                {
-                    if (other == selected) continue;
+        bool didHit = Physics.Raycast(ray, out var hit, 100f, mask);
 
-                    Color baseCol = other.plotType == PlotType.Abandoned ? abandonedPlotColor
-                                 : other.plotType == PlotType.Void ? voidPlotColor
-                                 : normalTileColor;
-                    other.HighlightPlot(baseCol);
-                }
-
-                // Highlight the one under the cursor:
-                hovered.HighlightPlot(hoverHighlightPlot);
-            }
-            return;
-        }
-
-        // If we're not hovering any plot, restore all non‐active plots
-        var active = activeGridManager;
+        var selected = activeGridManager;
         foreach (var other in Object.FindObjectsByType<GridManager>(
-            FindObjectsInactive.Include, FindObjectsSortMode.None))
+                        FindObjectsInactive.Include, FindObjectsSortMode.None))
         {
-            if (other == active) continue;
+            if (other == selected) continue;
 
             Color baseCol = other.plotType == PlotType.Abandoned ? abandonedPlotColor
                          : other.plotType == PlotType.Void ? voidPlotColor
                          : normalTileColor;
             other.HighlightPlot(baseCol);
+        }
+
+        if (didHit)
+        {
+            var hovered = hit.collider.GetComponentInParent<GridManager>();
+            if (hovered != null && hovered != selected)
+            {
+                hovered.HighlightPlot(hoverHighlightPlot);
+            }
+            return;
         }
     }
 
