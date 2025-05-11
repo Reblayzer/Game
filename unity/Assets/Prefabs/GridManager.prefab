@@ -58,7 +58,7 @@ MonoBehaviour:
     width: 3
     height: 3
   - name: MiningDrill
-    prefab: {fileID: 8814042518244966010, guid: 568e18e70d8c8ad4482a72f57a6aa430, type: 3}
+    prefab: {fileID: 8814042518244966010, guid: 49f71034383928448902e092a9ea4d90, type: 3}
     shockwavePrefab: {fileID: 1921079115439858272, guid: 1fb978dfcdeaeae40a460cdbd681085f, type: 3}
     length: 2
     width: 1
