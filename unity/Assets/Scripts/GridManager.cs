@@ -225,6 +225,7 @@ public class GridManager : MonoBehaviour
         // 5) instantiate exactly once
         GameObject placed = Instantiate(current.prefab, center, rot);
         SetLayerRecursive(placed, LayerMask.NameToLayer("Placed"));
+        SetLayerRecursive(placed, LayerMask.NameToLayer("MiningDrill"));
 
         // 6) hook up selectable
         var sel = placed.AddComponent<SelectableCuboid>();

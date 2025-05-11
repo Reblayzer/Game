@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1175450170656331973}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: MiningDrill01
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -42,7 +42,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1929470275504454994}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: 'MiningRateCanvas (Missing Prefab with guid: 09ecb1191d6c3164a8a47e5a221ed0f2)'
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -82,7 +82,7 @@ GameObject:
   - component: {fileID: 7560143813759182454}
   - component: {fileID: 3335628676792718252}
   - component: {fileID: 5135019555413601037}
-  m_Layer: 2
+  m_Layer: 10
   m_Name: MiningRateCanvas
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -228,7 +228,7 @@ GameObject:
   - component: {fileID: 6457538605371908522}
   - component: {fileID: 6470350192839924454}
   - component: {fileID: 5737701505417738679}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Temple_headquarters_3
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -378,7 +378,7 @@ GameObject:
   - component: {fileID: 6487960886379045309}
   - component: {fileID: 6487960886380143485}
   - component: {fileID: 6567362071851650693}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Temple_headquarters_2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -485,7 +485,7 @@ GameObject:
   - component: {fileID: 6487960886382436765}
   - component: {fileID: 6487960886379045311}
   - component: {fileID: 6487960886380143487}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Temple_headquarters_1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -570,7 +570,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6487960886382436767}
   - component: {fileID: 6487960886389689983}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Temple_headquarters (1)
   m_TagString: Untagged
   m_Icon: {fileID: 0}

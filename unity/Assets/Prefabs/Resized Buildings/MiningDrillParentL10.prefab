@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 92568489327686148}
   - component: {fileID: 92568489328652484}
   - component: {fileID: 4050109690679847541}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Tower_detail_small_2 (11)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -117,7 +117,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1193249875663036224}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: MiningDrill04
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -156,7 +156,7 @@ GameObject:
   - component: {fileID: 1598199270936394178}
   - component: {fileID: 1598199270935296770}
   - component: {fileID: 8913652603703589646}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: small_details_5 (6)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -267,7 +267,7 @@ GameObject:
   - component: {fileID: 3148277998658191242}
   - component: {fileID: 3163332564882031814}
   - component: {fileID: 4435287054309877655}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Temple_headquarters_3
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -417,7 +417,7 @@ GameObject:
   - component: {fileID: 2892710639374106525}
   - component: {fileID: 2892710639375203677}
   - component: {fileID: 2958532968986300581}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Temple_headquarters_2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -524,7 +524,7 @@ GameObject:
   - component: {fileID: 2892710639373303741}
   - component: {fileID: 2892710639374106527}
   - component: {fileID: 2892710639375203679}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Temple_headquarters_1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -609,7 +609,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2892710639373303743}
   - component: {fileID: 2892710639363444831}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Temple_headquarters (4)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -668,7 +668,7 @@ GameObject:
   - component: {fileID: 3377592363132531122}
   - component: {fileID: 3377592363131564914}
   - component: {fileID: 8157751492276194613}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Tower_detail_small_3 (4)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -778,7 +778,7 @@ GameObject:
   - component: {fileID: 7560143813759182454}
   - component: {fileID: 3335628676792718252}
   - component: {fileID: 5135019555413601037}
-  m_Layer: 2
+  m_Layer: 10
   m_Name: MiningRateCanvas
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -930,7 +930,7 @@ GameObject:
   - component: {fileID: 5283855174928919488}
   - component: {fileID: 5283855174927788288}
   - component: {fileID: 8081772802890068913}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Tower_detail_small_2 (12)
   m_TagString: Untagged
   m_Icon: {fileID: 0}

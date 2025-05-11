@@ -224,6 +224,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6391828688413196829, guid: 25b91be1c4167e14fa8a411e6162a8ff, type: 3}
+      propertyPath: m_fontSize
+      value: 41.55
+      objectReference: {fileID: 0}
     - target: {fileID: 6465650586351914346, guid: 25b91be1c4167e14fa8a411e6162a8ff, type: 3}
       propertyPath: m_Name
       value: UpgradeButton

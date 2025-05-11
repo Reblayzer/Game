@@ -104,6 +104,7 @@ MonoBehaviour:
   unclaimedMarkerCanvasPrefab: {fileID: 6485226225781762281, guid: c0991f7431db1aa46af7402d9e1f6e41, type: 3}
   abandonedMarkerCanvasPrefab: {fileID: 6485226225781762281, guid: ca7b0c6a0519eb34e8cc3fecd0b4c812, type: 3}
   opponentMarkerCanvasPrefab: {fileID: 6485226225781762281, guid: 3a334c3d43699e644bb0c6501aa6fc00, type: 3}
+  collectPanel: {fileID: 0}
   selectedIndex: 0
   plotType: 0
 --- !u!82 &6808531645132439361

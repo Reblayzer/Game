@@ -24,6 +24,8 @@ public class PlotSelector : MonoBehaviour
 
   [Header("Building Details Panel")]
   public GameObject buildInfoPanel;
+  [Header("Collect Panel")]
+  public GameObject collectPanel;
 
   void Awake()
   {
@@ -41,7 +43,6 @@ public class PlotSelector : MonoBehaviour
       buildingsButton.onClick.AddListener(OnBuildingsClicked);
 
     UpdateBuildingsButton();
-
     StartCoroutine(SelectInitialPlot());
   }
 
@@ -54,6 +55,8 @@ public class PlotSelector : MonoBehaviour
 
   public void SelectPlot(GridManager gm)
   {
+    ShowPlotInfoPanels();
+
     if (buttonSelector.GetActiveGridManager() == gm)
     {
       UpdateBuildingsButton();
@@ -94,6 +97,34 @@ public class PlotSelector : MonoBehaviour
         break;
     }
     onPlotChanged?.Invoke(gm);
+    UpdateBuildingsButton();
+  }
+
+  public void ShowPlotInfoPanels()
+  {
+    // hide collect
+    collectPanel?.SetActive(false);
+
+    // show the correct plot panels for the *currently* active plot
+    var gm = buttonSelector.GetActiveGridManager();
+    if (gm == null) return;
+
+    switch (gm.ownership)
+    {
+      case Ownership.Yours:
+      case Ownership.Opponent:
+        plotInfoPanel?.SetActive(true);
+        buyPlotInfoPanel?.SetActive(false);
+        break;
+      case Ownership.Unclaimed:
+        plotInfoPanel?.SetActive(false);
+        buyPlotInfoPanel?.SetActive(true);
+        break;
+      default:
+        plotInfoPanel?.SetActive(false);
+        buyPlotInfoPanel?.SetActive(false);
+        break;
+    }
   }
 
   public void UpdateBuildingsButton()
@@ -115,7 +146,6 @@ public class PlotSelector : MonoBehaviour
     if (buildToggle != null)
     {
       buildToggle.interactable = canBuild;
-
       if (!canBuild && buildToggle.isOn)
         buildToggle.isOn = false;
     }
@@ -129,5 +159,21 @@ public class PlotSelector : MonoBehaviour
     buttonSelector.ToggleEditMode(true);
     gm.SetActive(true);
     gm.SetEditMode(true);
+  }
+
+  public void ShowCollectPanel()
+  {
+    // hide the three existing panels
+    plotInfoPanel?.SetActive(false);
+    buyPlotInfoPanel?.SetActive(false);
+    buildInfoPanel?.SetActive(false);
+
+    // show CollectPanel
+    collectPanel?.SetActive(true);
+  }
+
+  public void HideCollectPanel()
+  {
+    collectPanel?.SetActive(false);
   }
 }

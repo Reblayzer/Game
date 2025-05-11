@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using TMPro;
 
@@ -19,6 +20,15 @@ public class SelectableCuboid : MonoBehaviour
         GridManager = manager;
     }
 
+    void OnMouseDown()
+    {
+        // ignore clicks over UI
+        if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
+            return;
+
+        ShowInfo();
+    }
+
     public void ShowInfo()
     {
         if (infoPanel == null || infoDisplay == null || upgradeButton == null)
@@ -32,6 +42,9 @@ public class SelectableCuboid : MonoBehaviour
             return;
         }
 
+        if (currentlySelectedCuboid != null && currentlySelectedCuboid != this)
+            currentlySelectedCuboid.HideInfo();
+
         infoPanel.SetActive(true);
         upgradeButton.gameObject.SetActive(true);
         infoDisplay.text = $"{cuboidName} (Level {level})";
@@ -44,6 +57,7 @@ public class SelectableCuboid : MonoBehaviour
         });
 
         currentlySelectedCuboid = this;
+        PlotSelector.Instance.ShowCollectPanel();
     }
 
     public void HideInfo()

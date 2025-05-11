@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1976154268516899478}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: MiningDrill03
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -46,7 +46,7 @@ GameObject:
   - component: {fileID: 3667416864125771786}
   - component: {fileID: 3667416864124773066}
   - component: {fileID: 7857921172416060557}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Tower_detail_small_3 (3)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -156,7 +156,7 @@ GameObject:
   - component: {fileID: 7560143813759182454}
   - component: {fileID: 3335628676792718252}
   - component: {fileID: 5135019555413601037}
-  m_Layer: 2
+  m_Layer: 10
   m_Name: MiningRateCanvas
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -308,7 +308,7 @@ GameObject:
   - component: {fileID: 4545399007044941059}
   - component: {fileID: 4545399007043844035}
   - component: {fileID: 5947801852150872015}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: small_details_5 (5)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -417,7 +417,7 @@ GameObject:
   - component: {fileID: 5698866547218629519}
   - component: {fileID: 5698866547217629519}
   - component: {fileID: 5637481856158264503}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Temple_headquarters_2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -527,7 +527,7 @@ GameObject:
   - component: {fileID: 5513082996313473944}
   - component: {fileID: 5536300373637609684}
   - component: {fileID: 6539165077662555013}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Temple_headquarters_3
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -675,7 +675,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5698866547219923885}
   - component: {fileID: 5698866547228961869}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Temple_headquarters (3)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -733,7 +733,7 @@ GameObject:
   - component: {fileID: 5698866547219923887}
   - component: {fileID: 5698866547218629517}
   - component: {fileID: 5698866547217629517}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Temple_headquarters_1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
