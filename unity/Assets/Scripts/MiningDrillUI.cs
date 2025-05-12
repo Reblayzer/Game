@@ -1,14 +1,16 @@
-using UnityEngine;
-using TMPro;
-using UnityEngine.UI;
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
+using TMPro;
 
-[System.Serializable]
+[Serializable]
 public class MaterialConfig
 {
   public Sprite iconSprite;
   public float spawnInterval = 1f;
+  public bool isMined = true;
 }
 
 public class MiningDrillUI : MonoBehaviour
@@ -25,11 +27,8 @@ public class MiningDrillUI : MonoBehaviour
   [SerializeField] private float groupLifetime = 1f;
 
   [Header("Popup Symbol & Amount")]
-  [Tooltip("The symbol prefix (e.g. “+”)")]
   [SerializeField] private string popupSymbol = "+";
-  [Tooltip("The numeric amount to show")]
   [SerializeField] private int popupAmount = 1;
-  [Tooltip("Space between symbol and amount text")]
   [SerializeField] private float symbolAmountSpacing = 2f;
 
   [Header("Text Style")]
@@ -43,15 +42,23 @@ public class MiningDrillUI : MonoBehaviour
 
   private int[] _pendingCounts;
 
-  private void Awake()
+  /// <summary>Fired immediately after each new batch of floating icons is spawned.</summary>
+  public event Action OnIconsSpawned;
+
+  /// <summary>Half of <see cref="groupLifetime"/>, i.e. how long the fade-in takes.</summary>
+  public float FadeInDuration => groupLifetime * 0.1f;
+
+  void Awake()
   {
     _pendingCounts = new int[materials.Count];
   }
 
   private void Start()
   {
+    // only kick off loops for *enabled* materials
     for (int i = 0; i < materials.Count; i++)
-      StartCoroutine(PerMaterialLoop(materials[i], i));
+      if (materials[i].isMined)
+        StartCoroutine(PerMaterialLoop(materials[i], i));
     StartCoroutine(GroupLoop());
   }
 
@@ -71,36 +78,43 @@ public class MiningDrillUI : MonoBehaviour
     {
       yield return new WaitForSeconds(1f);
 
+      // gather sprites
       var iconsToShow = new List<Sprite>();
       for (int i = 0; i < materials.Count; i++)
-      {
-        for (int c = 0; c < _pendingCounts[i]; c++)
-          iconsToShow.Add(materials[i].iconSprite);
-        _pendingCounts[i] = 0;
-      }
+        if (materials[i].isMined)
+        {
+          for (int c = 0; c < _pendingCounts[i]; c++)
+            iconsToShow.Add(materials[i].iconSprite);
+          _pendingCounts[i] = 0;
+        }
 
       if (iconsToShow.Count > 0)
+      {
+        // spawn and then notify
         SpawnCombinedUI(iconsToShow);
+        OnIconsSpawned?.Invoke();
+      }
     }
   }
 
   private void SpawnCombinedUI(List<Sprite> icons)
   {
-    // 1) Instantiate container
+    // instantiate container
     var go = Instantiate(floatingUIPrefab, canvasTransform, false);
     var cg = go.GetComponent<CanvasGroup>();
     var rt = go.GetComponent<RectTransform>();
 
-    // 2) Clear old children
-    foreach (Transform t in go.transform) Destroy(t.gameObject);
+    // clear old children
+    foreach (Transform t in go.transform)
+      Destroy(t.gameObject);
 
-    // 3) Create the symbol TMP
     float currentX = 0f;
+
+    // Symbol
     var symGO = new GameObject("Symbol", typeof(RectTransform));
     symGO.transform.SetParent(go.transform, false);
     var symRT = symGO.GetComponent<RectTransform>();
     symRT.pivot = new Vector2(0, .5f);
-
     var symTMP = symGO.AddComponent<TextMeshProUGUI>();
     symTMP.text = popupSymbol;
     symTMP.font = popupFont;
@@ -109,16 +123,14 @@ public class MiningDrillUI : MonoBehaviour
     symTMP.alignment = TextAlignmentOptions.MidlineLeft;
     symTMP.ForceMeshUpdate();
     float symW = symTMP.GetRenderedValues(false).x;
-
-    symRT.anchoredPosition = new Vector2(currentX, 0);
+    symRT.anchoredPosition = new Vector2(currentX, 0f);
     currentX += symW + symbolAmountSpacing;
 
-    // 4) Create the amount TMP
+    // Amount
     var amtGO = new GameObject("Amount", typeof(RectTransform));
     amtGO.transform.SetParent(go.transform, false);
     var amtRT = amtGO.GetComponent<RectTransform>();
     amtRT.pivot = new Vector2(0, .5f);
-
     var amtTMP = amtGO.AddComponent<TextMeshProUGUI>();
     amtTMP.text = popupAmount.ToString();
     amtTMP.font = popupFont;
@@ -127,30 +139,25 @@ public class MiningDrillUI : MonoBehaviour
     amtTMP.alignment = TextAlignmentOptions.MidlineLeft;
     amtTMP.ForceMeshUpdate();
     float amtW = amtTMP.GetRenderedValues(false).x;
-
-    amtRT.anchoredPosition = new Vector2(currentX, 0);
+    amtRT.anchoredPosition = new Vector2(currentX, 0f);
     currentX += amtW + iconSpacing;
 
-    // 5) Spawn icons after that
+    // icons
     for (int i = 0; i < icons.Count; i++)
     {
-      var spr = icons[i];
       var iconGO = new GameObject("icon", typeof(RectTransform), typeof(Image));
       iconGO.transform.SetParent(go.transform, false);
-
       var iconRT = iconGO.GetComponent<RectTransform>();
       iconRT.pivot = new Vector2(0, .5f);
       iconRT.sizeDelta = iconSize;
-      iconRT.anchoredPosition = new Vector2(currentX, 0);
-
+      iconRT.anchoredPosition = new Vector2(currentX, 0f);
       var img = iconGO.GetComponent<Image>();
-      img.sprite = spr;
+      img.sprite = icons[i];
       img.preserveAspect = true;
-
       currentX += iconSize.x + iconSpacing;
     }
 
-    // 6) Animate & destroy
+    // animate & destroy
     rt.anchoredPosition = startAnchoredPosition;
     cg.alpha = 0f;
     StartCoroutine(AnimateAndDestroy(cg, rt, groupLifetime, go));
@@ -160,11 +167,12 @@ public class MiningDrillUI : MonoBehaviour
   {
     float half = lifetime * 0.5f;
     Vector2 start = startAnchoredPosition;
-    float h = canvasTransform.rect.height * .5f;
-    Vector2 mid = start + Vector2.up * (h * .5f),
+    float h = canvasTransform.rect.height * 0.5f;
+    Vector2 mid = start + Vector2.up * (h * 0.5f),
             end = start + Vector2.up * h;
 
     float t = 0f;
+    // fade in & move up
     while (t < half)
     {
       float p = t / half;
@@ -173,15 +181,22 @@ public class MiningDrillUI : MonoBehaviour
       t += Time.deltaTime;
       yield return null;
     }
+
+    // fade out & continue up
     t = 0f;
     while (t < half)
     {
       float p = t / half;
       rt.anchoredPosition = Vector2.Lerp(mid, end, p);
-      cg.alpha = 1 - p;
+      cg.alpha = 1f - p;
       t += Time.deltaTime;
       yield return null;
     }
+
     Destroy(go);
   }
+
+  // expose readonly collections:
+  public IReadOnlyList<MaterialConfig> Materials => materials;
+  public int[] PendingCounts => _pendingCounts;
 }

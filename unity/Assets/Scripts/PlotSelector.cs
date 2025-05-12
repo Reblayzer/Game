@@ -1,13 +1,11 @@
-using UnityEngine;
-using UnityEngine.EventSystems;
-using UnityEngine.UI;
 using System.Collections;
-using System;
+using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
 
 public class PlotSelector : MonoBehaviour
 {
   public static PlotSelector Instance { get; private set; }
-  public event Action<GridManager> onPlotChanged;
 
   [Header("Wiring")]
   public BuildingButtonSelector buttonSelector;
@@ -24,24 +22,23 @@ public class PlotSelector : MonoBehaviour
 
   [Header("Building Details Panel")]
   public GameObject buildInfoPanel;
+
   [Header("Collect Panel")]
   public GameObject collectPanel;
+
+  private MiningDrillData _currentDrill;
+  private MiningDrillUI _currentUI;
 
   void Awake()
   {
     if (Instance == null) Instance = this;
-
-    if (mapToggle != null)
-      mapToggle.onValueChanged.AddListener(_ => UpdateBuildingsButton());
-
+    mapToggle?.onValueChanged.AddListener(_ => UpdateBuildingsButton());
     UpdateBuildingsButton();
   }
 
   void Start()
   {
-    if (buildingsButton != null)
-      buildingsButton.onClick.AddListener(OnBuildingsClicked);
-
+    buildingsButton?.onClick.AddListener(OnBuildingsClicked);
     UpdateBuildingsButton();
     StartCoroutine(SelectInitialPlot());
   }
@@ -49,7 +46,6 @@ public class PlotSelector : MonoBehaviour
   private IEnumerator SelectInitialPlot()
   {
     yield return new WaitUntil(() => buttonSelector.GetActiveGridManager() != null);
-
     SelectPlot(buttonSelector.GetActiveGridManager());
   }
 
@@ -67,18 +63,11 @@ public class PlotSelector : MonoBehaviour
       buildToggle.isOn = false;
 
     buildInfoPanel?.SetActive(false);
-
-    var panelToggle = UnityEngine.Object.FindFirstObjectByType<BuildingButtonToggle>();
-    if (panelToggle != null && panelToggle.IsVisible())
-      panelToggle.ToggleButtons();
+    FindFirstObjectByType<BuildingButtonToggle>()?.ToggleButtons();
 
     buttonSelector.SetActiveGridManager(gm);
-
     cameraController?.SetTargetPosition(gm.transform.position);
-
     buttonSelector.SelectByIndex(buttonSelector.CurrentIndex);
-
-    Debug.Log($"📍 Selected Plot: {gm.plotRow},{gm.plotCol}");
 
     switch (gm.ownership)
     {
@@ -96,16 +85,14 @@ public class PlotSelector : MonoBehaviour
         buyPlotInfoPanel?.SetActive(false);
         break;
     }
-    onPlotChanged?.Invoke(gm);
+
     UpdateBuildingsButton();
   }
 
   public void ShowPlotInfoPanels()
   {
-    // hide collect
     collectPanel?.SetActive(false);
 
-    // show the correct plot panels for the *currently* active plot
     var gm = buttonSelector.GetActiveGridManager();
     if (gm == null) return;
 
@@ -131,18 +118,9 @@ public class PlotSelector : MonoBehaviour
   {
     bool mapOpen = mapToggle != null && mapToggle.isOn;
     var gm = buttonSelector.GetActiveGridManager();
-
-    Ownership owner = Ownership.Unclaimed;
-    if (gm != null)
-    {
-      var ptc = gm.GetComponentInChildren<PlotTriggerController>();
-      if (ptc != null) owner = ptc.ownership;
-    }
-
-    bool canBuild = (gm != null && owner == Ownership.Yours);
+    bool canBuild = gm != null && gm.ownership == Ownership.Yours;
 
     buildingsButton?.gameObject.SetActive(canBuild && !mapOpen);
-
     if (buildToggle != null)
     {
       buildToggle.interactable = canBuild;
@@ -151,8 +129,7 @@ public class PlotSelector : MonoBehaviour
     }
   }
 
-
-  private void OnBuildingsClicked()
+  void OnBuildingsClicked()
   {
     var gm = buttonSelector.GetActiveGridManager();
     if (gm == null) return;
@@ -161,19 +138,79 @@ public class PlotSelector : MonoBehaviour
     gm.SetEditMode(true);
   }
 
-  public void ShowCollectPanel()
+  public void ShowCollectPanel(MiningDrillData drill)
   {
-    // hide the three existing panels
+    // hide other panels (your existing code)
     plotInfoPanel?.SetActive(false);
     buyPlotInfoPanel?.SetActive(false);
     buildInfoPanel?.SetActive(false);
 
-    // show CollectPanel
     collectPanel?.SetActive(true);
+
+    // 1) unhook *both* old events
+    if (_currentUI != null)
+      _currentUI.OnIconsSpawned -= HandleIconsSpawned;
+    if (_currentDrill != null)
+      _currentDrill.OnCollectedDelta -= HandleDataDelta;
+
+    // 2) hook up new drill & UI
+    _currentUI = drill.GetComponentInChildren<MiningDrillUI>();
+    _currentDrill = drill;
+
+    _currentUI.OnIconsSpawned += HandleIconsSpawned;
+    _currentDrill.OnCollectedDelta += HandleDataDelta;
+
+    // 3) initial refresh
+    RefreshDisplay(_currentDrill.CollectedCounts);
   }
 
   public void HideCollectPanel()
   {
     collectPanel?.SetActive(false);
+
+    if (_currentUI != null)
+      _currentUI.OnIconsSpawned -= HandleIconsSpawned;
+    if (_currentDrill != null)
+      _currentDrill.OnCollectedDelta -= HandleDataDelta;
+
+    _currentUI = null;
+    _currentDrill = null;
+  }
+
+  private void HandleIconsSpawned()
+  {
+    // wait for fade-in, then update
+    StartCoroutine(DelayedRefresh(_currentDrill.CollectedCounts, _currentUI.FadeInDuration));
+  }
+
+  private IEnumerator DelayedRefresh(int[] totals, float delay)
+  {
+    yield return new WaitForSeconds(delay);
+    RefreshDisplay(totals);
+  }
+
+  private void RefreshDisplay(int[] totals)
+  {
+    var panel = collectPanel.transform;
+    for (int i = 0; i < panel.childCount; i++)
+    {
+      var slot = panel.GetChild(i);
+      if (slot == null) continue;
+
+      var labelTf = slot.Find("Amount/AmountLabel");
+      if (labelTf == null) continue;
+
+      var label = labelTf.GetComponent<TMP_Text>();
+      if (label == null) continue;
+
+      int value = i < totals.Length ? totals[i] : 0;
+      label.text = value.ToString();
+    }
+  }
+
+  private void HandleDataDelta(int[] totals)
+  {
+    RefreshDisplay(totals);
+    StartCoroutine(DelayedRefresh(totals, _currentUI.FadeInDuration));
   }
 }

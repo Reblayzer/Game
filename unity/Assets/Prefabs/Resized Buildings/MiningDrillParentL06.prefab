@@ -272,19 +272,19 @@ MonoBehaviour:
   canvasTransform: {fileID: 5409911608342456918}
   floatingUIPrefab: {fileID: 4931379563722581389, guid: 34764f97275cbb24fa2c9c3162f7edeb, type: 3}
   materials:
-  - iconSprite: {fileID: 1278573715430680295, guid: 027253f2be7f7b74f9d2e16435c5dc13, type: 3}
+  - iconSprite: {fileID: 21300000, guid: 027253f2be7f7b74f9d2e16435c5dc13, type: 3}
     spawnInterval: 1
-  - iconSprite: {fileID: -3097734857788578486, guid: b838b8266ee1f4b44a3abef652ac7d42, type: 3}
+  - iconSprite: {fileID: 21300000, guid: b838b8266ee1f4b44a3abef652ac7d42, type: 3}
     spawnInterval: 2
-  - iconSprite: {fileID: 4295467868912160234, guid: 37e5c54e90541b2408aeeb6b12a62238, type: 3}
+  - iconSprite: {fileID: 21300000, guid: 37e5c54e90541b2408aeeb6b12a62238, type: 3}
     spawnInterval: 3
-  - iconSprite: {fileID: 2421113736299807680, guid: 765d8cce9403e7d4fb1bc46396029cfb, type: 3}
+  - iconSprite: {fileID: 21300000, guid: 765d8cce9403e7d4fb1bc46396029cfb, type: 3}
     spawnInterval: 4
-  - iconSprite: {fileID: -3396871346005431174, guid: 7a880eb49ad1de84a94814b924255344, type: 3}
+  - iconSprite: {fileID: 21300000, guid: 7a880eb49ad1de84a94814b924255344, type: 3}
     spawnInterval: 5
-  - iconSprite: {fileID: -6364867202919117442, guid: 74b5c5dcae19af74fba49192a06c9333, type: 3}
+  - iconSprite: {fileID: 21300000, guid: 74b5c5dcae19af74fba49192a06c9333, type: 3}
     spawnInterval: 6
-  - iconSprite: {fileID: 6169580794431755824, guid: 8b95e5e11b1cc504583e0145d107bea6, type: 3}
+  - iconSprite: {fileID: 21300000, guid: 8b95e5e11b1cc504583e0145d107bea6, type: 3}
     spawnInterval: 7
   startAnchoredPosition: {x: 0, y: 0}
   groupLifetime: 1
@@ -820,6 +820,7 @@ GameObject:
   - component: {fileID: 4862153326363602251}
   - component: {fileID: 3065222547823757922}
   - component: {fileID: 5605865075959577810}
+  - component: {fileID: -8004984714330161725}
   m_Layer: 10
   m_Name: MiningDrillParentL06
   m_TagString: Untagged
@@ -918,3 +919,15 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &-8004984714330161725
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8814042518244966010}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bcff0a2956a0f3449888aedf816a1e62, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

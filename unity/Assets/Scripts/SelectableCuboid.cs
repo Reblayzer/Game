@@ -42,9 +42,11 @@ public class SelectableCuboid : MonoBehaviour
             return;
         }
 
+        // hide the old one
         if (currentlySelectedCuboid != null && currentlySelectedCuboid != this)
             currentlySelectedCuboid.HideInfo();
 
+        // show this one's info
         infoPanel.SetActive(true);
         upgradeButton.gameObject.SetActive(true);
         infoDisplay.text = $"{cuboidName} (Level {level})";
@@ -57,7 +59,19 @@ public class SelectableCuboid : MonoBehaviour
         });
 
         currentlySelectedCuboid = this;
-        PlotSelector.Instance.ShowCollectPanel();
+
+        // *** only this overload ***
+        var drillData = GetComponent<MiningDrillData>();
+        if (drillData != null)
+        {
+            // this single line tells PlotSelector which drill's counts to show
+            PlotSelector.Instance.ShowCollectPanel(drillData);
+        }
+        else
+        {
+            // non-drills (other buildings) should just hide the collect panel
+            PlotSelector.Instance.HideCollectPanel();
+        }
     }
 
     public void HideInfo()
