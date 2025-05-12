@@ -1,4 +1,5 @@
 using System.Collections;
+using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -6,6 +7,8 @@ using UnityEngine.UI;
 public class PlotSelector : MonoBehaviour
 {
   public static PlotSelector Instance { get; private set; }
+
+  public event Action<MiningDrillData> onCollectPanelRequested;
 
   [Header("Wiring")]
   public BuildingButtonSelector buttonSelector;
@@ -136,6 +139,7 @@ public class PlotSelector : MonoBehaviour
     buttonSelector.ToggleEditMode(true);
     gm.SetActive(true);
     gm.SetEditMode(true);
+    gm.StartPlacementPhase();
   }
 
   public void ShowCollectPanel(MiningDrillData drill)
@@ -146,6 +150,7 @@ public class PlotSelector : MonoBehaviour
     buildInfoPanel?.SetActive(false);
 
     collectPanel?.SetActive(true);
+    onCollectPanelRequested?.Invoke(drill);
 
     // 1) unhook *both* old events
     if (_currentUI != null)
@@ -175,6 +180,7 @@ public class PlotSelector : MonoBehaviour
 
     _currentUI = null;
     _currentDrill = null;
+    onCollectPanelRequested?.Invoke(null);
   }
 
   private void HandleIconsSpawned()
