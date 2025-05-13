@@ -28,6 +28,7 @@ public class BlueprintToggle : MonoBehaviour
 
         if (isOn)
         {
+            ps.HideCollectPanel();
             // you just *opened* this blueprint:
             // 1) hide any plot panels
             ps.plotInfoPanel?.SetActive(false);

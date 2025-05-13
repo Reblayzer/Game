@@ -6,17 +6,15 @@ public class InventoryScrollController : MonoBehaviour
 {
   [SerializeField] private RectTransform content;
 
-  void Awake()
+  void OnEnable()
   {
-    // subscribe once and for all, even if we hide the panel
     WarehouseData.Instance.OnInventoryChanged += UpdateAll;
-    // immediately fill it with whatever is already in the warehouse
+    // also populate immediately in case there’s already data
     UpdateAll(WarehouseData.Instance.GetAllStored());
   }
 
-  void OnDestroy()
+  void OnDisable()
   {
-    // if you really want to clean up:
     WarehouseData.Instance.OnInventoryChanged -= UpdateAll;
   }
 

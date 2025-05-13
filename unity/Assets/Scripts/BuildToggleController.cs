@@ -83,6 +83,7 @@ public class BuildToggleController : MonoBehaviour
             plotInfoPanel?.SetActive(true);
             buyPlotInfoPanel?.SetActive(false);
             buildInfoPanel?.SetActive(false);
+            PlotSelector.Instance?.HideCollectPanel();
         }
         else
         {
@@ -90,6 +91,7 @@ public class BuildToggleController : MonoBehaviour
             plotInfoPanel?.SetActive(true);
             buyPlotInfoPanel?.SetActive(false);
             buildInfoPanel?.SetActive(false);
+            PlotSelector.Instance?.HideCollectPanel();
         }
     }
 

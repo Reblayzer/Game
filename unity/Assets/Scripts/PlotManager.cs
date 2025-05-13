@@ -22,6 +22,7 @@ public class PlotManager : MonoBehaviour
     [Header("Plot Type Distribution")]
     public int abandonedPlotCount = 1;
     public int voidPlotCount = 1;
+    public int mountainPlotCount = 1;
 
     [Header("Shared UI References")]
     public GameObject selectedCuboidUIPanel;
@@ -57,9 +58,18 @@ public class PlotManager : MonoBehaviour
         allIndices.Shuffle();
 
         // 2) Pick Abandoned & Void
-        var abandonedIdx = new HashSet<int>(allIndices.GetRange(0, Mathf.Min(abandonedPlotCount, total)));
-        var voidIdx = new HashSet<int>(allIndices.GetRange(abandonedPlotCount,
-            Mathf.Min(voidPlotCount, total - abandonedPlotCount)));
+        int start = 0;
+        var abandonedIdx = new HashSet<int>(
+          allIndices.GetRange(start, Mathf.Min(abandonedPlotCount, total - start))
+        );
+        start += abandonedPlotCount;
+        var voidIdx = new HashSet<int>(
+          allIndices.GetRange(start, Mathf.Min(voidPlotCount, total - start))
+        );
+        start += voidPlotCount;
+        var mountainIdx = new HashSet<int>(
+          allIndices.GetRange(start, Mathf.Min(mountainPlotCount, total - start))
+        );
 
         // 3) Spawn every plot
         plots.Clear();
@@ -80,7 +90,8 @@ public class PlotManager : MonoBehaviour
                 grid.SetUIReferences(selectedCuboidUIPanel, selectedCuboidInfoText, upgradeButton);
                 grid.SetButtonSelector(buildingSelector);
 
-                if (voidIdx.Contains(flat)) grid.plotType = PlotType.Void;
+                if (mountainIdx.Contains(flat)) grid.plotType = PlotType.Mountain;
+                else if (voidIdx.Contains(flat)) grid.plotType = PlotType.Void;
                 else if (abandonedIdx.Contains(flat)) grid.plotType = PlotType.Abandoned;
                 else grid.plotType = PlotType.Normal;
 

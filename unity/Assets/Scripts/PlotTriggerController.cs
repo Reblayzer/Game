@@ -39,10 +39,20 @@ public class PlotTriggerController : MonoBehaviour
 
     void OnMouseDown()
     {
-        if (EventSystem.current != null
-            && EventSystem.current.IsPointerOverGameObject())
+        // ignore clicks over UI
+        if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
             return;
 
+        // if you clicked *through* to your placed building (Placed layer), skip the plot logic:
+        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        RaycastHit[] hits = Physics.RaycastAll(ray, Mathf.Infinity);
+        foreach (var h in hits)
+        {
+            if (h.collider.gameObject.layer == LayerMask.NameToLayer("Placed"))
+                return; // let the building handle the click
+        }
+
+        // otherwise, this is a ground/plot click — continue as before:
         if (_grid != null)
             PlotSelector.Instance.SelectPlot(_grid);
 
@@ -51,33 +61,17 @@ public class PlotTriggerController : MonoBehaviour
 
         if (_buildToggle != null && _buildToggle.isOn)
         {
+            // placement-mode click logic...
             if (_grid.IsInEditMode() && _grid.InPlacementPhase)
             {
-                Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-                if (Physics.Raycast(ray, out var hit, 100f, LayerMask.GetMask("Tile")))
+                int tileMask = LayerMask.GetMask("Tile");
+                if (Physics.Raycast(ray, out var hit, 100f, tileMask))
                 {
                     var tile = hit.collider.GetComponent<Tile>();
                     if (tile != null && tile.GridManager == _grid)
                         _grid.TryPlaceCuboidAt(tile.gridPosition.x, tile.gridPosition.y);
                 }
             }
-            return;
         }
-
-        if (markerCanvas == null) return;
-        if (markerCanvas.activeSelf)
-        {
-            markerCanvas.SetActive(false);
-            return;
-        }
-
-        foreach (var other in Object.FindObjectsByType<PlotTriggerController>(
-                 FindObjectsInactive.Include, FindObjectsSortMode.None))
-        {
-            if (other != this && other.markerCanvas != null)
-                other.markerCanvas.SetActive(false);
-        }
-
-        markerCanvas.SetActive(true);
     }
 }

@@ -22,6 +22,11 @@ public class CollectPanelController : MonoBehaviour
       collectButton.onClick.AddListener(OnCollectPressed);
   }
 
+  void OnEnable()
+  {
+    PlotSelector.Instance.onCollectPanelRequested += HandleShowRequest;
+  }
+
   void Start()
   {
     if (PlotSelector.Instance == null)
@@ -33,43 +38,41 @@ public class CollectPanelController : MonoBehaviour
     PlotSelector.Instance.onCollectPanelRequested += HandleShowRequest;
   }
 
+  void OnDisable()
+  {
+    PlotSelector.Instance.onCollectPanelRequested -= HandleShowRequest;
+  }
+
   private void HandleShowRequest(MiningDrillData drill)
   {
-    // tear down any old listeners
+    // 1) unsubscribe any old listeners
     if (_currentUI != null)
     {
       _currentUI.OnIconsSpawned -= HandleIconsOrData;
       _currentDrill.OnCollectedDelta -= HandleIconsOrData;
+      _currentUI = null;
+      _currentDrill = null;
     }
 
+    // 2) now install the new drill (or null)
     _currentDrill = drill;
+    collectPanel.SetActive(drill != null);
+    collectButton.interactable = (drill != null);
 
     if (drill == null)
-    {
-      // hide panel
-      collectPanel.SetActive(false);
-      _currentUI = null;
       return;
-    }
 
-    // otherwise, show it
-    collectPanel.SetActive(true);
-
-    // grab its UI helper
     _currentUI = drill.GetComponentInChildren<MiningDrillUI>();
-
-    // listen for both floating‐icon batches **and** raw data deltas
     _currentUI.OnIconsSpawned += HandleIconsOrData;
     _currentDrill.OnCollectedDelta += HandleIconsOrData;
-
-    // immediate refresh so you don’t see stale numbers
     RefreshDisplay(_currentDrill.CollectedCounts);
   }
 
   private void HandleIconsOrData(int[] dummy) => HandleIconsOrData();
   private void HandleIconsOrData()
   {
-    // sync the CollectPanel **after** the icons have faded in
+    if (_currentDrill == null || !collectPanel.activeInHierarchy)
+      return;
     float delay = _currentUI?.FadeInDuration ?? 0f;
     if (_refreshRoutine != null) StopCoroutine(_refreshRoutine);
     _refreshRoutine = StartCoroutine(DelayedRefresh(_currentDrill.CollectedCounts, delay));
@@ -116,11 +119,5 @@ public class CollectPanelController : MonoBehaviour
     Debug.Log("  pulled: " + string.Join(",", justMined));
     WarehouseData.Instance.AddToWarehouse(justMined);
     RefreshDisplay(new int[_currentUI.Materials.Count]);
-  }
-
-  void OnDestroy()
-  {
-    if (PlotSelector.Instance != null)
-      PlotSelector.Instance.onCollectPanelRequested -= HandleShowRequest;
   }
 }

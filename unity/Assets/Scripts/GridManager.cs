@@ -21,7 +21,7 @@ public class CuboidType
     }
 }
 
-public enum PlotType { Normal, Abandoned, Void }
+public enum PlotType { Normal, Abandoned, Void, Mountain }
 public enum Ownership { Unclaimed, Yours, Opponent }
 
 public class GridManager : MonoBehaviour
@@ -34,6 +34,12 @@ public class GridManager : MonoBehaviour
     public int gridSize = 7;
     public GameObject tilePrefab;
     public CuboidType[] cuboidTypes;
+
+    [Header("Mountain")]
+    [SerializeField] private GameObject mountainPrefab;
+
+    [Header("Pit")]
+    public GameObject pitPrefab;
 
     [Header("Materials")]
     public Material ghostMaterialValid;
@@ -92,51 +98,72 @@ public class GridManager : MonoBehaviour
 
     void Start()
     {
-        // 0) cache the “Placed” layer mask at runtime
+        // 0) cache your layer masks
         _placedMask = 1 << LayerMask.NameToLayer("Placed");
         _tileMask = 1 << LayerMask.NameToLayer("Tile");
 
-        // 1) set up your PlotTrigger collider
+        // 1) PlotTrigger collider
         var triggerZone = new GameObject("PlotTrigger");
         triggerZone.transform.SetParent(transform);
         triggerZone.transform.localPosition = Vector3.zero;
         triggerZone.transform.localRotation = Quaternion.identity;
         triggerZone.transform.localScale = Vector3.one;
-
         var box = triggerZone.AddComponent<BoxCollider>();
         box.size = new Vector3(gridSize, 0.1f, gridSize);
         box.center = new Vector3(0, 0.01f, 0);
         box.isTrigger = true;
         triggerZone.layer = LayerMask.NameToLayer("Plot");
-
         var ptc = triggerZone.AddComponent<PlotTriggerController>();
         ptc.ownership = ownership;
 
-        // 2) instantiate your world‐marker canvas
-        GameObject prefabToUse = null;
+        // 2) special‐case: mountain in the center
+        if (plotType == PlotType.Mountain && mountainPrefab != null)
+        {
+            var rock = Instantiate(
+                mountainPrefab,
+                transform.position,
+                Quaternion.identity,
+                transform
+            );
+            rock.name = "MountainTop";
+        }
+
+        // 3) special‐case: pit for Void plots
+        if (plotType == PlotType.Void && pitPrefab != null)
+        {
+            var pit = Instantiate(
+                pitPrefab,
+                transform.position,
+                Quaternion.identity,
+                transform
+            );
+            pit.name = "Pit";
+        }
+
+        // 4) world‐marker canvas (Normal & Abandoned only)
+        GameObject canvasPrefab = null;
         if (plotType == PlotType.Abandoned)
-            prefabToUse = abandonedMarkerCanvasPrefab;
+            canvasPrefab = abandonedMarkerCanvasPrefab;
         else if (plotType == PlotType.Normal)
         {
             switch (ownership)
             {
-                case Ownership.Yours: prefabToUse = claimedMarkerCanvasPrefab; break;
-                case Ownership.Opponent: prefabToUse = opponentMarkerCanvasPrefab; break;
-                default: prefabToUse = unclaimedMarkerCanvasPrefab; break;
+                case Ownership.Yours: canvasPrefab = claimedMarkerCanvasPrefab; break;
+                case Ownership.Opponent: canvasPrefab = opponentMarkerCanvasPrefab; break;
+                default: canvasPrefab = unclaimedMarkerCanvasPrefab; break;
             }
         }
 
-        if (prefabToUse != null)
+        if (canvasPrefab != null)
         {
-            var canv = Instantiate(prefabToUse, triggerZone.transform);
+            var canv = Instantiate(canvasPrefab, triggerZone.transform);
             canv.SetActive(false);
             canv.transform.localPosition = new Vector3(0, 2f, 0);
-            canv.transform.localRotation = Quaternion.identity;
             canv.AddComponent<BillboardCanvas>();
             ptc.markerCanvas = canv;
         }
 
-        // 3) build the tile grid
+        // 5) build your tile grid—skip the 5×5 interior on Void plots
         float offset = gridSize / 2f - 0.5f;
         occupiedTiles = new bool[gridSize, gridSize];
         tileGrid = new Tile[gridSize, gridSize];
@@ -145,6 +172,14 @@ public class GridManager : MonoBehaviour
         {
             for (int z = 0; z < gridSize; z++)
             {
+                // if Void, only outer ring remains
+                if (plotType == PlotType.Void
+                    && x > 0 && x < gridSize - 1
+                    && z > 0 && z < gridSize - 1)
+                {
+                    continue;
+                }
+
                 Vector3 pos = transform.position + new Vector3(x - offset, 0, z - offset);
                 var tileObj = Instantiate(tilePrefab, pos, Quaternion.identity, transform);
                 tileObj.layer = LayerMask.NameToLayer("Tile");
@@ -155,7 +190,7 @@ public class GridManager : MonoBehaviour
             }
         }
 
-        // 4) grab your AudioSource and turn UI panels off
+        // 6) grab your AudioSource and hide any UI overlays
         audioSource = GetComponent<AudioSource>();
         if (selectedCuboidUIPanel != null) selectedCuboidUIPanel.SetActive(false);
         if (buildingButtonsPanel != null) buildingButtonsPanel.SetActive(true);

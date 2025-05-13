@@ -93,6 +93,8 @@ MonoBehaviour:
     length: 4
     width: 1
     height: 3
+  mountainPrefab: {fileID: 1604413879457636381, guid: 95671654d4300304d94541b4f17837ed, type: 3}
+  pitPrefab: {fileID: 5769885554843634180, guid: d497993c83cbe4d42913a33b11ec1c5d, type: 3}
   ghostMaterialValid: {fileID: 2100000, guid: 00bf977a22fd6824ab93e6cfb1547805, type: 2}
   ghostMaterialInvalid: {fileID: 2100000, guid: 6c860372803c5944c8c0d0fe819a57e6, type: 2}
   buildingButtonsPanel: {fileID: 2784434265855235292, guid: dba185dc3dd692e448b384f85a07f10e, type: 3}
@@ -104,7 +106,6 @@ MonoBehaviour:
   unclaimedMarkerCanvasPrefab: {fileID: 6485226225781762281, guid: c0991f7431db1aa46af7402d9e1f6e41, type: 3}
   abandonedMarkerCanvasPrefab: {fileID: 6485226225781762281, guid: ca7b0c6a0519eb34e8cc3fecd0b4c812, type: 3}
   opponentMarkerCanvasPrefab: {fileID: 6485226225781762281, guid: 3a334c3d43699e644bb0c6501aa6fc00, type: 3}
-  collectPanel: {fileID: 0}
   selectedIndex: 0
   plotType: 0
 --- !u!82 &6808531645132439361

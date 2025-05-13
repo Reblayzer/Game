@@ -99,6 +99,15 @@ public class PlotSelector : MonoBehaviour
     var gm = buttonSelector.GetActiveGridManager();
     if (gm == null) return;
 
+    // Mountain plots get no standard UI…
+    if (gm.plotType == PlotType.Mountain)
+    {
+      plotInfoPanel?.SetActive(false);
+      buyPlotInfoPanel?.SetActive(false);
+      buildInfoPanel?.SetActive(false);
+      return;
+    }
+
     switch (gm.ownership)
     {
       case Ownership.Yours:
@@ -134,6 +143,7 @@ public class PlotSelector : MonoBehaviour
 
   void OnBuildingsClicked()
   {
+    HideCollectPanel();
     var gm = buttonSelector.GetActiveGridManager();
     if (gm == null) return;
     buttonSelector.ToggleEditMode(true);
