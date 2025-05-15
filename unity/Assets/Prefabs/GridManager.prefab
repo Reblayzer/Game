@@ -93,7 +93,7 @@ MonoBehaviour:
     length: 4
     width: 1
     height: 3
-  mountainPrefab: {fileID: 1604413879457636381, guid: 95671654d4300304d94541b4f17837ed, type: 3}
+  mountainPrefab: {fileID: 3546979595343458755, guid: 4ee9c962e229aec49a8036b725741601, type: 3}
   pitPrefab: {fileID: 5769885554843634180, guid: d497993c83cbe4d42913a33b11ec1c5d, type: 3}
   ghostMaterialValid: {fileID: 2100000, guid: 00bf977a22fd6824ab93e6cfb1547805, type: 2}
   ghostMaterialInvalid: {fileID: 2100000, guid: 6c860372803c5944c8c0d0fe819a57e6, type: 2}
