@@ -1,6 +1,6 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using TMPro;
 
@@ -40,6 +40,9 @@ public class GridManager : MonoBehaviour
 
     [Header("Pit")]
     public GameObject pitPrefab;
+
+    [Header("Abandoned")]
+    public GameObject abandonedBuildingPrefab;
 
     [Header("Materials")]
     public Material ghostMaterialValid;
@@ -86,6 +89,17 @@ public class GridManager : MonoBehaviour
     private int _placedMask;
     private int _tileMask;
 
+    [Header("Ground Decoration")]
+    [Tooltip("Pebbles go at local Y = 0.025")]
+    public GameObject pebblesPrefab;
+    [Tooltip("Small rock goes at local Y = 0")]
+    public GameObject smallRockPrefab;
+    [Tooltip("High rock goes at local Y = 0")]
+    public GameObject highRockPrefab;
+
+    // 0 = none, 1 = pebbles, 2 = small rock, 3 = high rock
+    private int[,] decorationMap;
+
     public bool CanPlace =>
         buildingButtonsPanel != null &&
         buildingButtonsPanel.activeSelf &&
@@ -98,7 +112,7 @@ public class GridManager : MonoBehaviour
 
     void Start()
     {
-        // 0) cache your layer masks
+        // 0) Cache your layer masks
         _placedMask = 1 << LayerMask.NameToLayer("Placed");
         _tileMask = 1 << LayerMask.NameToLayer("Tile");
 
@@ -116,7 +130,7 @@ public class GridManager : MonoBehaviour
         var ptc = triggerZone.AddComponent<PlotTriggerController>();
         ptc.ownership = ownership;
 
-        // 2) special‐case: mountain in the center
+        // 2) Special‐case: mountain in the center
         if (plotType == PlotType.Mountain && mountainPrefab != null)
         {
             var rock = Instantiate(
@@ -128,7 +142,7 @@ public class GridManager : MonoBehaviour
             rock.name = "MountainTop";
         }
 
-        // 3) special‐case: pit for Void plots
+        // 3) Special‐case: pit for Void plots
         if (plotType == PlotType.Void && pitPrefab != null)
         {
             var pit = Instantiate(
@@ -140,10 +154,24 @@ public class GridManager : MonoBehaviour
             pit.name = "Pit";
         }
 
-        // 4) world‐marker canvas (Normal & Abandoned only)
+        // 3.5) Special‐case: abandoned‐plot building
+        if (plotType == PlotType.Abandoned && abandonedBuildingPrefab != null)
+        {
+            var bld = Instantiate(
+                abandonedBuildingPrefab,
+                transform.position,
+                Quaternion.identity,
+                transform
+            );
+            bld.name = "AbandonedBuilding";
+        }
+
+        // 4) World‐marker canvas (Normal & Abandoned only)
         GameObject canvasPrefab = null;
         if (plotType == PlotType.Abandoned)
+        {
             canvasPrefab = abandonedMarkerCanvasPrefab;
+        }
         else if (plotType == PlotType.Normal)
         {
             switch (ownership)
@@ -153,7 +181,6 @@ public class GridManager : MonoBehaviour
                 default: canvasPrefab = unclaimedMarkerCanvasPrefab; break;
             }
         }
-
         if (canvasPrefab != null)
         {
             var canv = Instantiate(canvasPrefab, triggerZone.transform);
@@ -163,7 +190,10 @@ public class GridManager : MonoBehaviour
             ptc.markerCanvas = canv;
         }
 
-        // 5) build your tile grid—skip the 5×5 interior on Void plots
+        // === Precompute decorations ===
+        ComputeDecorationMap();
+
+        // 5) Build tile grid—skip the 5×5 interior on Void plots
         float offset = gridSize / 2f - 0.5f;
         occupiedTiles = new bool[gridSize, gridSize];
         tileGrid = new Tile[gridSize, gridSize];
@@ -172,30 +202,176 @@ public class GridManager : MonoBehaviour
         {
             for (int z = 0; z < gridSize; z++)
             {
-                // if Void, only outer ring remains
                 if (plotType == PlotType.Void
                     && x > 0 && x < gridSize - 1
                     && z > 0 && z < gridSize - 1)
-                {
                     continue;
-                }
 
-                Vector3 pos = transform.position + new Vector3(x - offset, 0, z - offset);
-                var tileObj = Instantiate(tilePrefab, pos, Quaternion.identity, transform);
+                Vector3 pos = transform.position
+                              + new Vector3(x - offset, 0f, z - offset);
+
+                GameObject tileObj = Instantiate(
+                    tilePrefab,
+                    pos,
+                    Quaternion.identity,
+                    transform
+                );
                 tileObj.layer = LayerMask.NameToLayer("Tile");
 
                 var tileScript = tileObj.AddComponent<Tile>();
                 tileScript.Init(new Vector2Int(x, z), this);
                 tileGrid[x, z] = tileScript;
+
+                int deco = decorationMap[x, z];
+                switch (deco)
+                {
+                    case 1:
+                        var pb = Instantiate(pebblesPrefab, tileObj.transform);
+                        pb.transform.localPosition = new Vector3(0f, 0.025f, 0f);
+                        pb.transform.localRotation = Quaternion.identity;
+                        pb.transform.localScale = pebblesPrefab.transform.localScale;
+                        break;
+                    case 2:
+                        var sr = Instantiate(smallRockPrefab, tileObj.transform);
+                        sr.transform.localPosition = Vector3.zero;
+                        sr.transform.localRotation = Quaternion.identity;
+                        sr.transform.localScale = smallRockPrefab.transform.localScale;
+                        break;
+                    case 3:
+                        var hr = Instantiate(highRockPrefab, tileObj.transform);
+                        hr.transform.localPosition = Vector3.zero;
+                        hr.transform.localRotation = Quaternion.identity;
+                        hr.transform.localScale = highRockPrefab.transform.localScale;
+                        break;
+                }
             }
         }
 
-        // 6) grab your AudioSource and hide any UI overlays
+        // 6) Grab your AudioSource and hide any UI overlays
         audioSource = GetComponent<AudioSource>();
         if (selectedCuboidUIPanel != null) selectedCuboidUIPanel.SetActive(false);
         if (buildingButtonsPanel != null) buildingButtonsPanel.SetActive(true);
 
         initialized = true;
+    }
+
+    // Fills decorationMap[x,z] with:
+    //   0 = none
+    //   1 = pebbles
+    //   2 = small rock
+    //   3 = high rock
+    // Whenever we place a pebble (1) at [x,z], we force *one* of its valid tile-neighbors
+    // (N/E/S/W) to also become a pebble—guaranteeing no lone pebbles.
+    private void ComputeDecorationMap()
+    {
+        decorationMap = new int[gridSize, gridSize];
+        var rng = new System.Random();
+
+        // Helper: is (x,z) a real tile?
+        bool IsValidTile(int x, int z)
+        {
+            if (x < 0 || z < 0 || x >= gridSize || z >= gridSize)
+                return false;
+            if (plotType == PlotType.Void
+                && x > 0 && x < gridSize - 1
+                && z > 0 && z < gridSize - 1)
+                return false;
+            return true;
+        }
+
+        // Four cardinal directions
+        Vector2Int[] dirs = {
+        new Vector2Int( 1,  0),
+        new Vector2Int(-1,  0),
+        new Vector2Int( 0,  1),
+        new Vector2Int( 0, -1)
+    };
+
+        // Only place pebbles on Normal or Abandoned plots
+        if (plotType == PlotType.Normal || plotType == PlotType.Abandoned)
+        {
+            // Decide how many chunks: exactly 2 if this is "your" plot,
+            // otherwise random 1–4.
+            int minChunks = 1, maxChunks = 4;
+            int desiredChunks = (ownership == Ownership.Yours)
+                                 ? 2
+                                 : rng.Next(minChunks, maxChunks + 1);
+
+            int placedChunks = 0, tries = 0;
+            while (placedChunks < desiredChunks && tries < desiredChunks * 10)
+            {
+                tries++;
+                // pick a random valid, empty cell
+                int x = rng.Next(gridSize), z = rng.Next(gridSize);
+                if (!IsValidTile(x, z) || decorationMap[x, z] != 0)
+                    continue;
+
+                // find its empty, valid neighbors
+                var candidates = new List<Vector2Int>();
+                foreach (var d in dirs)
+                {
+                    int nx = x + d.x, nz = z + d.y;
+                    if (IsValidTile(nx, nz) && decorationMap[nx, nz] == 0)
+                        candidates.Add(new Vector2Int(nx, nz));
+                }
+                if (candidates.Count == 0)
+                    continue;
+
+                // place the chunk of two pebbles
+                var pick = candidates[rng.Next(candidates.Count)];
+                decorationMap[x, z] = 1;
+                decorationMap[pick.x, pick.y] = 1;
+                placedChunks++;
+            }
+
+            // Guarantee at least one chunk if somehow none got placed
+            if (placedChunks == 0)
+            {
+                for (int x = 0; x < gridSize && placedChunks == 0; x++)
+                {
+                    for (int z = 0; z < gridSize; z++)
+                    {
+                        if (!IsValidTile(x, z) || decorationMap[x, z] != 0)
+                            continue;
+
+                        var candidates = new List<Vector2Int>();
+                        foreach (var d in dirs)
+                        {
+                            int nx = x + d.x, nz = z + d.y;
+                            if (IsValidTile(nx, nz) && decorationMap[nx, nz] == 0)
+                                candidates.Add(new Vector2Int(nx, nz));
+                        }
+                        if (candidates.Count == 0)
+                            continue;
+
+                        var pick = candidates[rng.Next(candidates.Count)];
+                        decorationMap[x, z] = 1;
+                        decorationMap[pick.x, pick.y] = 1;
+                        placedChunks = 1;
+                        break;
+                    }
+                }
+            }
+        }
+
+        // Now fill leftover tiles with rocks at 10% chance
+        const double rockSpawnChance = 0.1;
+        double smallRockRatio = 0.35 / (0.35 + 0.3); // ~0.538
+        for (int x = 0; x < gridSize; x++)
+        {
+            for (int z = 0; z < gridSize; z++)
+            {
+                if (!IsValidTile(x, z) || decorationMap[x, z] != 0)
+                    continue;
+                if (rng.NextDouble() > rockSpawnChance)
+                    continue;
+
+                if (rng.NextDouble() < smallRockRatio)
+                    decorationMap[x, z] = 2;
+                else
+                    decorationMap[x, z] = 3;
+            }
+        }
     }
 
     public void SetActive(bool state)

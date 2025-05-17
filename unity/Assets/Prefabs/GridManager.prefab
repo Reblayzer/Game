@@ -95,6 +95,7 @@ MonoBehaviour:
     height: 3
   mountainPrefab: {fileID: 3546979595343458755, guid: 4ee9c962e229aec49a8036b725741601, type: 3}
   pitPrefab: {fileID: 5769885554843634180, guid: d497993c83cbe4d42913a33b11ec1c5d, type: 3}
+  abandonedBuildingPrefab: {fileID: 5585029755296155954, guid: 724107da6aeb62d40b4a6578591cb3f9, type: 3}
   ghostMaterialValid: {fileID: 2100000, guid: 00bf977a22fd6824ab93e6cfb1547805, type: 2}
   ghostMaterialInvalid: {fileID: 2100000, guid: 6c860372803c5944c8c0d0fe819a57e6, type: 2}
   buildingButtonsPanel: {fileID: 2784434265855235292, guid: dba185dc3dd692e448b384f85a07f10e, type: 3}
@@ -107,6 +108,9 @@ MonoBehaviour:
   abandonedMarkerCanvasPrefab: {fileID: 6485226225781762281, guid: ca7b0c6a0519eb34e8cc3fecd0b4c812, type: 3}
   opponentMarkerCanvasPrefab: {fileID: 6485226225781762281, guid: 3a334c3d43699e644bb0c6501aa6fc00, type: 3}
   selectedIndex: 0
+  pebblesPrefab: {fileID: 6035286004239228193, guid: 6d0ee209b280d704ab8b86308201fe9e, type: 3}
+  smallRockPrefab: {fileID: 2285841290271349904, guid: 4a212b06130aaea46aaa300902ba882e, type: 3}
+  highRockPrefab: {fileID: 2729905827224303734, guid: fc558f1987593584ca4d171fab7da02b, type: 3}
   plotType: 0
 --- !u!82 &6808531645132439361
 AudioSource:

@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 7066023708448421268}
   - component: {fileID: 8816282923596398479}
   - component: {fileID: 8480954986673472587}
+  - component: {fileID: -1205120988683412531}
   m_Layer: 6
   m_Name: Tile
   m_TagString: Untagged
@@ -131,3 +132,21 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &-1205120988683412531
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2614781486797241175}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d3430364493f76e49a8938100c67a1a1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  spawnChance: 0.1
+  pebblesChance: 0.35
+  smallRockChance: 0.35
+  pebblesPrefab: {fileID: 593135115413047161, guid: da43d9e1dd98a584989bd9619fa59f62, type: 3}
+  smallRockPrefab: {fileID: 2285841290271349904, guid: 4a212b06130aaea46aaa300902ba882e, type: 3}
+  highRockPrefab: {fileID: 2729905827224303734, guid: fc558f1987593584ca4d171fab7da02b, type: 3}

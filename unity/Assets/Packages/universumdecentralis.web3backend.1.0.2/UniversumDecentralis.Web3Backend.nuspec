@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+  <metadata>
+    <id>UniversumDecentralis.Web3Backend</id>
+    <version>1.0.2</version>
+    <authors>UniversumDecentralis</authors>
+    <license type="expression">MIT</license>
+    <licenseUrl>https://licenses.nuget.org/MIT</licenseUrl>
+    <description>Runtime interaction library for Web3 smart contracts.</description>
+    <repository type="git" url="https://github.com/Universum-Decentralis/web3-backend" commit="34da03b1d5b4e6fd273d8e24d4628d9473906f47" />
+    <dependencies>
+      <group targetFramework=".NETStandard2.1">
+        <dependency id="DotNetEnv" version="2.4.0" exclude="Build,Analyzers" />
+        <dependency id="Nethereum.Web3" version="4.8.0" exclude="Build,Analyzers" />
+        <dependency id="System.Text.Json" version="9.0.5" exclude="Build,Analyzers" />
+      </group>
+    </dependencies>
+  </metadata>
+</package>

@@ -5,6 +5,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Assembly-CSharp", "Assembly
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AmplifyShaderEditor", "AmplifyShaderEditor.csproj", "{A235E0E9-0084-9146-7646-3E0079E8EE53}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGetForUnity", "NuGetForUnity.csproj", "{1EA2316C-DC39-23B8-D49E-480900C3B4D9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -19,6 +21,10 @@ Global
 		{A235E0E9-0084-9146-7646-3E0079E8EE53}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A235E0E9-0084-9146-7646-3E0079E8EE53}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A235E0E9-0084-9146-7646-3E0079E8EE53}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1EA2316C-DC39-23B8-D49E-480900C3B4D9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1EA2316C-DC39-23B8-D49E-480900C3B4D9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1EA2316C-DC39-23B8-D49E-480900C3B4D9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1EA2316C-DC39-23B8-D49E-480900C3B4D9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
