@@ -42,7 +42,7 @@ public class GridManager : MonoBehaviour
     public GameObject pitPrefab;
 
     [Header("Abandoned")]
-    public GameObject abandonedBuildingPrefab;
+    public GameObject[] abandonedBuildingPrefabs;
 
     [Header("Materials")]
     public Material ghostMaterialValid;
@@ -133,37 +133,25 @@ public class GridManager : MonoBehaviour
         // 2) Special‐case: mountain in the center
         if (plotType == PlotType.Mountain && mountainPrefab != null)
         {
-            var rock = Instantiate(
-                mountainPrefab,
-                transform.position,
-                Quaternion.identity,
-                transform
-            );
+            var rock = Instantiate(mountainPrefab, transform.position, Quaternion.identity, transform);
             rock.name = "MountainTop";
         }
 
         // 3) Special‐case: pit for Void plots
         if (plotType == PlotType.Void && pitPrefab != null)
         {
-            var pit = Instantiate(
-                pitPrefab,
-                transform.position,
-                Quaternion.identity,
-                transform
-            );
+            var pit = Instantiate(pitPrefab, transform.position, Quaternion.identity, transform);
             pit.name = "Pit";
         }
 
         // 3.5) Special‐case: abandoned‐plot building
-        if (plotType == PlotType.Abandoned && abandonedBuildingPrefab != null)
+        if (plotType == PlotType.Abandoned && abandonedBuildingPrefabs != null && abandonedBuildingPrefabs.Length > 0)
         {
-            var bld = Instantiate(
-                abandonedBuildingPrefab,
-                transform.position,
-                Quaternion.identity,
-                transform
-            );
-            bld.name = "AbandonedBuilding";
+            int choice = UnityEngine.Random.Range(0, abandonedBuildingPrefabs.Length);
+            GameObject prefabToSpawn = abandonedBuildingPrefabs[choice];
+
+            var bld = Instantiate(prefabToSpawn, transform.position, Quaternion.identity, transform);
+            bld.name = prefabToSpawn.name;
         }
 
         // 4) World‐marker canvas (Normal & Abandoned only)

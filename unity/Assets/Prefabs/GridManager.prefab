@@ -95,7 +95,9 @@ MonoBehaviour:
     height: 3
   mountainPrefab: {fileID: 3546979595343458755, guid: 4ee9c962e229aec49a8036b725741601, type: 3}
   pitPrefab: {fileID: 5769885554843634180, guid: d497993c83cbe4d42913a33b11ec1c5d, type: 3}
-  abandonedBuildingPrefab: {fileID: 5585029755296155954, guid: 724107da6aeb62d40b4a6578591cb3f9, type: 3}
+  abandonedBuildingPrefabs:
+  - {fileID: 5585029755296155954, guid: 724107da6aeb62d40b4a6578591cb3f9, type: 3}
+  - {fileID: 5585029755296155954, guid: cfddc8c182611d9498d403b87b543b34, type: 3}
   ghostMaterialValid: {fileID: 2100000, guid: 00bf977a22fd6824ab93e6cfb1547805, type: 2}
   ghostMaterialInvalid: {fileID: 2100000, guid: 6c860372803c5944c8c0d0fe819a57e6, type: 2}
   buildingButtonsPanel: {fileID: 2784434265855235292, guid: dba185dc3dd692e448b384f85a07f10e, type: 3}
