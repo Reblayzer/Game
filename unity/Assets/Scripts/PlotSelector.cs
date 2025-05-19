@@ -29,6 +29,16 @@ public class PlotSelector : MonoBehaviour
   [Header("Collect Panel")]
   public GameObject collectPanel;
 
+  [Header("VFX Prefabs")]
+  public GameObject fogVFXPrefab;
+  public GameObject dustVFXPrefab;
+
+  [Header("VFX Settings")]
+  public float spawnHeightOffset = 0.5f;
+
+  private GameObject currentFog;
+  private GameObject currentDust;
+
   private MiningDrillData _currentDrill;
   private MiningDrillUI _currentUI;
 
@@ -54,6 +64,19 @@ public class PlotSelector : MonoBehaviour
 
   public void SelectPlot(GridManager gm)
   {
+    // 0. Tear down any existing VFX
+    if (currentFog != null)
+    {
+      Destroy(currentFog);
+      currentFog = null;
+    }
+    if (currentDust != null)
+    {
+      Destroy(currentDust);
+      currentDust = null;
+    }
+
+    // 1. Your existing UI/selection logic
     ShowPlotInfoPanels();
 
     if (buttonSelector.GetActiveGridManager() == gm)
@@ -90,6 +113,26 @@ public class PlotSelector : MonoBehaviour
     }
 
     UpdateBuildingsButton();
+
+    // 2. Spawn new fog & dust VFX at the selected plot
+    Vector3 spawnPos = gm.transform.position + Vector3.up * spawnHeightOffset;
+
+    if (fogVFXPrefab != null)
+    {
+      currentFog = Instantiate(fogVFXPrefab, spawnPos, Quaternion.identity);
+      currentFog.transform.SetParent(gm.transform, worldPositionStays: true);
+    }
+
+    if (dustVFXPrefab != null)
+    {
+      Vector3 randomOffset = new Vector3(
+          UnityEngine.Random.Range(-0.5f, 0.5f),
+          0,
+          UnityEngine.Random.Range(-0.5f, 0.5f)
+      );
+      currentDust = Instantiate(dustVFXPrefab, spawnPos + randomOffset, Quaternion.identity);
+      currentDust.transform.SetParent(gm.transform, worldPositionStays: true);
+    }
   }
 
   public void ShowPlotInfoPanels()
