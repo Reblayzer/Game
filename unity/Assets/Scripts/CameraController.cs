@@ -5,6 +5,10 @@ public class CameraController : MonoBehaviour
 {
     public Transform target;
 
+    [Header("Height")]
+    [Tooltip("Vertical offset of the camera pivot above the target position.")]
+    public float height = 10f;
+
     [Header("Zoom")]
     public float distance = 30f;
     public float zoomSpeed = 10f;
@@ -37,7 +41,6 @@ public class CameraController : MonoBehaviour
                 target = pivotGO.transform;
         }
 
-        // initialize our stored destination
         if (target != null)
             targetPosition = target.position;
 
@@ -45,9 +48,7 @@ public class CameraController : MonoBehaviour
         UpdateCameraPosition();
     }
 
-    /// <summary>
-    /// Call this to tell the camera where it should move its pivot to.
-    /// </summary>
+    // Call this to tell the camera where it should move its pivot to.
     public void SetTargetPosition(Vector3 newPosition)
     {
         targetPosition = newPosition;
@@ -57,10 +58,7 @@ public class CameraController : MonoBehaviour
     {
         if (target == null || cam == null) return;
 
-        // Instant snap (uncomment to use):
-        // target.position = targetPosition;
-
-        // Smooth pan (uncomment to use):
+        // Smooth pan
         target.position = Vector3.Lerp(
             target.position,
             targetPosition,
@@ -95,9 +93,15 @@ public class CameraController : MonoBehaviour
     void UpdateCameraPosition()
     {
         if (target == null) return;
+
+        // Compute pivot with height offset
+        Vector3 pivot = target.position + Vector3.up * height;
+
         Quaternion rot = Quaternion.Euler(verticalAngle, horizontalAngle, 0f);
         Vector3 dir = rot * Vector3.forward;
-        transform.position = target.position - dir * distance;
-        transform.LookAt(target.position);
+
+        // Position camera at distance along the rotated forward vector from the pivot
+        transform.position = pivot - dir * distance;
+        transform.LookAt(pivot);
     }
 }
