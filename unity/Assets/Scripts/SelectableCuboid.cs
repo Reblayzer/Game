@@ -1,85 +1,62 @@
+using System;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
-using TMPro;
 
 public class SelectableCuboid : MonoBehaviour
 {
-    public static SelectableCuboid currentlySelectedCuboid = null;
+    // Fired whenever you click a cuboid in Build/Edit mode (or null to clear)
+    public static event Action<SelectableCuboid> OnCuboidSelected;
+    private static SelectableCuboid _current;
 
+    [Header("Identity")]
     public string cuboidName;
-    public GameObject infoPanel;
-    public TMP_Text infoDisplay;
-    public Button upgradeButton;
-    public GridManager GridManager { get; private set; }
+    private int _level = 1;
+    public int Level => _level;
 
-    private int level = 1;
+    private Toggle _buildToggle, _editToggle;
 
-    public void Init(GridManager manager)
+    void Awake()
     {
-        GridManager = manager;
+        _buildToggle = PlotSelector.Instance.buildToggle;
+        _editToggle = EditToggleController.InstanceToggle;
+    }
+
+    public static void ClearSelection()
+    {
+        _current = null;
+        OnCuboidSelected?.Invoke(null);
     }
 
     void OnMouseDown()
     {
-        // ignore clicks over UI
         if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
             return;
 
-        ShowInfo();
-    }
+        bool buildMode = _buildToggle.isOn;
+        bool editMode = _editToggle.isOn;
 
-    public void ShowInfo()
-    {
-        if (infoPanel == null || infoDisplay == null || upgradeButton == null)
-            return;
-
-        // 🔁 Toggle if clicking same building again
-        if (currentlySelectedCuboid == this && infoPanel.activeSelf)
+        // 1) Not in build/edit → only show collect‐panel for drills
+        if (!buildMode && !editMode)
         {
-            GridManager.HideCuboidInfo(); // Hide via GridManager logic
-            currentlySelectedCuboid = null;
+            var drill = GetComponent<MiningDrillData>();
+            if (drill != null)
+                PlotSelector.Instance.ShowCollectPanel(drill);
             return;
         }
 
-        // hide the old one
-        if (currentlySelectedCuboid != null && currentlySelectedCuboid != this)
-            currentlySelectedCuboid.HideInfo();
+        // 2) In build/edit → always hide collect‐panel
+        PlotSelector.Instance.HideCollectPanel();
 
-        // show this one's info
-        infoPanel.SetActive(true);
-        upgradeButton.gameObject.SetActive(true);
-        infoDisplay.text = $"{cuboidName} (Level {level})";
-
-        upgradeButton.onClick.RemoveAllListeners();
-        upgradeButton.onClick.AddListener(() =>
-        {
-            level++;
-            infoDisplay.text = $"{cuboidName} (Level {level})";
-        });
-
-        currentlySelectedCuboid = this;
-
-        // *** only this overload ***
-        var drillData = GetComponent<MiningDrillData>();
-        if (drillData != null)
-        {
-            // this single line tells PlotSelector which drill's counts to show
-            PlotSelector.Instance.ShowCollectPanel(drillData);
-        }
-        else
-        {
-            // non-drills (other buildings) should just hide the collect panel
-            PlotSelector.Instance.HideCollectPanel();
-        }
+        // 3) Select this cuboid (firing the global event drives your BuildingInfoDisplay)
+        _current = this;
+        OnCuboidSelected?.Invoke(this);
     }
 
-    public void HideInfo()
+    public void Upgrade()
     {
-        if (infoPanel != null)
-            infoPanel.SetActive(false);
-
-        if (upgradeButton != null)
-            upgradeButton.gameObject.SetActive(false);
+        _level++;
+        if (_current == this)
+            OnCuboidSelected?.Invoke(this);
     }
 }

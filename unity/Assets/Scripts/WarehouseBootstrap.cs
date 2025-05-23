@@ -14,15 +14,16 @@ public class WarehouseBootstrap : MonoBehaviour
       return;
     }
 
-    // find the MiningDrillUI on one of its children:
-    var ui = miningDrillParentPrefab.GetComponentInChildren<MiningDrillUI>();
-    if (ui == null)
+    // pull the data component off the root of your prefab
+    var data = miningDrillParentPrefab.GetComponent<MiningDrillData>();
+    if (data == null)
     {
-      Debug.LogError("WarehouseBootstrap: no MiningDrillUI found on the child of your parent prefab.");
+      Debug.LogError("WarehouseBootstrap: no MiningDrillData found on your prefab.");
       return;
     }
 
-    // now initialize with the right slot count:
-    WarehouseData.Instance.Initialize(ui.Materials.Count);
+    // use the number of rates you've defined in the data as the slot count
+    int slotCount = data.MiningRatePerLevel.Count;
+    WarehouseData.Instance.Initialize(slotCount);
   }
 }

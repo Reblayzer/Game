@@ -1571,7 +1571,6 @@ GameObject:
   - component: {fileID: 7319489388785220694}
   - component: {fileID: 2079272620869440023}
   - component: {fileID: 7181324412457388718}
-  - component: {fileID: 8771272733383440862}
   m_Layer: 10
   m_Name: AbandonedMiningDrillParentL01(Clone)
   m_TagString: Untagged
@@ -1711,18 +1710,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.3264669, y: 0.2188393, z: 0.1391324}
   m_Center: {x: 0.405, y: 0.49, z: 0}
---- !u!114 &8771272733383440862
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2640178251870393158}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bcff0a2956a0f3449888aedf816a1e62, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &2988677242581175873
 GameObject:
   m_ObjectHideFlags: 0
@@ -2530,7 +2517,6 @@ GameObject:
   - component: {fileID: 402919742120983444}
   - component: {fileID: 8922926163451907531}
   - component: {fileID: 6274825046273112335}
-  - component: {fileID: 652500600703326313}
   m_Layer: 10
   m_Name: AbandonedMiningDrillParentL10(Clone)
   m_TagString: Untagged
@@ -2628,18 +2614,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &652500600703326313
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4259146006095730334}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bcff0a2956a0f3449888aedf816a1e62, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &4399068332111396194
 GameObject:
   m_ObjectHideFlags: 0
@@ -3259,7 +3233,6 @@ GameObject:
   - component: {fileID: 7040939478047703450}
   - component: {fileID: 9158106443120368037}
   - component: {fileID: 2236809546542923268}
-  - component: {fileID: 5604953318277355957}
   m_Layer: 10
   m_Name: AbandonedMiningDrillParentL10
   m_TagString: Untagged
@@ -3357,18 +3330,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &5604953318277355957
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5214029672169097189}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bcff0a2956a0f3449888aedf816a1e62, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &5498107547846829442
 GameObject:
   m_ObjectHideFlags: 0
@@ -4560,7 +4521,6 @@ GameObject:
   - component: {fileID: 5149938652721438746}
   - component: {fileID: 3757101970707637556}
   - component: {fileID: 1801589765923285074}
-  - component: {fileID: 7465851930595330628}
   m_Layer: 10
   m_Name: AbandonedMiningDrillParentL10(Clone) (1)
   m_TagString: Untagged
@@ -4658,18 +4618,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &7465851930595330628
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7073153462922139457}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bcff0a2956a0f3449888aedf816a1e62, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &7437047755772564262
 GameObject:
   m_ObjectHideFlags: 0

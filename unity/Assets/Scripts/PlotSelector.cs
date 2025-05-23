@@ -1,5 +1,5 @@
-using System.Collections;
 using System;
+using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -8,6 +8,7 @@ public class PlotSelector : MonoBehaviour
 {
   public static PlotSelector Instance { get; private set; }
 
+  public event Action OnPlotChanged;
   public event Action<MiningDrillData> onCollectPanelRequested;
 
   [Header("Wiring")]
@@ -38,7 +39,6 @@ public class PlotSelector : MonoBehaviour
 
   private GameObject currentFog;
   private GameObject currentDust;
-
   private MiningDrillData _currentDrill;
   private MiningDrillUI _currentUI;
 
@@ -64,19 +64,10 @@ public class PlotSelector : MonoBehaviour
 
   public void SelectPlot(GridManager gm)
   {
-    // 0. Tear down any existing VFX
-    if (currentFog != null)
-    {
-      Destroy(currentFog);
-      currentFog = null;
-    }
-    if (currentDust != null)
-    {
-      Destroy(currentDust);
-      currentDust = null;
-    }
+    // teardown old VFX
+    if (currentFog != null) { Destroy(currentFog); currentFog = null; }
+    if (currentDust != null) { Destroy(currentDust); currentDust = null; }
 
-    // 1. Your existing UI/selection logic
     ShowPlotInfoPanels();
 
     if (buttonSelector.GetActiveGridManager() == gm)
@@ -114,35 +105,29 @@ public class PlotSelector : MonoBehaviour
 
     UpdateBuildingsButton();
 
-    // 2. Spawn new fog & dust VFX at the selected plot
+    // spawn new VFX
     Vector3 spawnPos = gm.transform.position + Vector3.up * spawnHeightOffset;
-
     if (fogVFXPrefab != null)
     {
       currentFog = Instantiate(fogVFXPrefab, spawnPos, Quaternion.identity);
-      currentFog.transform.SetParent(gm.transform, worldPositionStays: true);
+      currentFog.transform.SetParent(gm.transform, true);
     }
-
     if (dustVFXPrefab != null)
     {
-      Vector3 randomOffset = new Vector3(
-          UnityEngine.Random.Range(-0.5f, 0.5f),
-          0,
-          UnityEngine.Random.Range(-0.5f, 0.5f)
-      );
-      currentDust = Instantiate(dustVFXPrefab, spawnPos + randomOffset, Quaternion.identity);
-      currentDust.transform.SetParent(gm.transform, worldPositionStays: true);
+      Vector3 rand = new Vector3(UnityEngine.Random.Range(-.5f, .5f), 0, UnityEngine.Random.Range(-.5f, .5f));
+      currentDust = Instantiate(dustVFXPrefab, spawnPos + rand, Quaternion.identity);
+      currentDust.transform.SetParent(gm.transform, true);
     }
+
+    OnPlotChanged?.Invoke();
   }
 
   public void ShowPlotInfoPanels()
   {
     collectPanel?.SetActive(false);
-
     var gm = buttonSelector.GetActiveGridManager();
     if (gm == null) return;
 
-    // Mountain plots get no standard UI…
     if (gm.plotType == PlotType.Mountain)
     {
       plotInfoPanel?.SetActive(false);
@@ -197,7 +182,6 @@ public class PlotSelector : MonoBehaviour
 
   public void ShowCollectPanel(MiningDrillData drill)
   {
-    // hide other panels (your existing code)
     plotInfoPanel?.SetActive(false);
     buyPlotInfoPanel?.SetActive(false);
     buildInfoPanel?.SetActive(false);
@@ -205,41 +189,33 @@ public class PlotSelector : MonoBehaviour
     collectPanel?.SetActive(true);
     onCollectPanelRequested?.Invoke(drill);
 
-    // 1) unhook *both* old events
-    if (_currentUI != null)
-      _currentUI.OnIconsSpawned -= HandleIconsSpawned;
+    // unsubscribe old
     if (_currentDrill != null)
       _currentDrill.OnCollectedDelta -= HandleDataDelta;
 
-    // 2) hook up new drill & UI
+    // new hook
     _currentUI = drill.GetComponentInChildren<MiningDrillUI>();
     _currentDrill = drill;
-
-    _currentUI.OnIconsSpawned += HandleIconsSpawned;
     _currentDrill.OnCollectedDelta += HandleDataDelta;
 
-    // 3) initial refresh
     RefreshDisplay(_currentDrill.CollectedCounts);
   }
 
   public void HideCollectPanel()
   {
     collectPanel?.SetActive(false);
-
-    if (_currentUI != null)
-      _currentUI.OnIconsSpawned -= HandleIconsSpawned;
     if (_currentDrill != null)
       _currentDrill.OnCollectedDelta -= HandleDataDelta;
-
     _currentUI = null;
     _currentDrill = null;
     onCollectPanelRequested?.Invoke(null);
   }
 
-  private void HandleIconsSpawned()
+  private void HandleDataDelta(int[] totals)
   {
-    // wait for fade-in, then update
-    StartCoroutine(DelayedRefresh(_currentDrill.CollectedCounts, _currentUI.FadeInDuration));
+    RefreshDisplay(totals);
+    float delay = _currentUI?.FadeInDuration ?? 0f;
+    StartCoroutine(DelayedRefresh(totals, delay));
   }
 
   private IEnumerator DelayedRefresh(int[] totals, float delay)
@@ -255,21 +231,16 @@ public class PlotSelector : MonoBehaviour
     {
       var slot = panel.GetChild(i);
       if (slot == null) continue;
-
       var labelTf = slot.Find("Amount/AmountLabel");
       if (labelTf == null) continue;
-
       var label = labelTf.GetComponent<TMP_Text>();
-      if (label == null) continue;
-
       int value = i < totals.Length ? totals[i] : 0;
       label.text = value.ToString();
     }
   }
 
-  private void HandleDataDelta(int[] totals)
+  public void RaisePlotChanged()
   {
-    RefreshDisplay(totals);
-    StartCoroutine(DelayedRefresh(totals, _currentUI.FadeInDuration));
+    OnPlotChanged?.Invoke();
   }
 }

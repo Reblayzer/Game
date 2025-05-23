@@ -355,6 +355,7 @@ GameObject:
   - component: {fileID: 7420023379295946888}
   - component: {fileID: 3349857307601139228}
   - component: {fileID: 5169716574712355733}
+  - component: {fileID: 4185514043557553062}
   m_Layer: 0
   m_Name: Mountain
   m_TagString: Untagged
@@ -433,6 +434,18 @@ MonoBehaviour:
   minIntensity: 0
   maxIntensity: 3
   speed: 0.2
+--- !u!114 &4185514043557553062
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3546979595343458755}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d3430364493f76e49a8938100c67a1a1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &3775962535251694806
 GameObject:
   m_ObjectHideFlags: 0

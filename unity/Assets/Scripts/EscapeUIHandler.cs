@@ -3,33 +3,40 @@ using UnityEngine.EventSystems;
 
 public class EscapeUIHandler : MonoBehaviour
 {
-    public GridManager gridManager;
+    [Tooltip("Hook up your PlotSelector")]
+    public PlotSelector plotSelector;
+
+    [Tooltip("Hook up your BuildingButtonSelector")]
     public BuildingButtonSelector buttonSelector;
+
+    [Tooltip("Optional: clear grid highlights")]
+    public GridManager gridManager;
 
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Escape))
+        if (!Input.GetKeyDown(KeyCode.Escape)) return;
+
+        // 1) turn off Build & Edit modes
+        if (plotSelector != null)
         {
-            var toggle = FindFirstObjectByType<BuildingButtonToggle>();
-            if (toggle != null)
-                toggle.HidePanel();
-
-            if (gridManager != null)
-            {
-                gridManager.ClearCuboidSelection();
-                gridManager.HideCuboidInfo();
-            }
-
-            if (buttonSelector != null)
-                buttonSelector.ClearSelection();
-
-            // ✅ Forcefully clear any selected cuboid globally
-            if (SelectableCuboid.currentlySelectedCuboid != null)
-            {
-                SelectableCuboid.currentlySelectedCuboid.HideInfo();
-            }
-
-            EventSystem.current.SetSelectedGameObject(null);
+            plotSelector.buildToggle.isOn = false;
+            EditToggleController.InstanceToggle.isOn = false;
         }
+
+        // 2) clear any building-info canvas via the selection event
+        SelectableCuboid.ClearSelection();
+
+        // 3) hide collect panel
+        PlotSelector.Instance.HideCollectPanel();
+
+        // 4) clear blueprint list
+        buttonSelector?.ClearSelection();
+
+        // 5) clear any grid selection
+        gridManager?.ClearCuboidSelection();
+        gridManager?.HideCuboidInfo();
+
+        // 6) unfocus UI
+        EventSystem.current?.SetSelectedGameObject(null);
     }
 }

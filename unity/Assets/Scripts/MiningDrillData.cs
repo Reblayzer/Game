@@ -1,10 +1,39 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using System;
+using TMPro;
+
+[Serializable]
+public struct TextStyle
+{
+  public TMP_FontAsset Font;
+  public float FontSize;
+  public Color Color;
+}
 
 public class MiningDrillData : MonoBehaviour
 {
+  [Header("Identity")]
+  [Tooltip("Displayed in the BuildingInfoCanvas")]
+  public string DrillName;
+  [Tooltip("Initial level of the drill (1-based)")]
+  public int Level = 1;
+
+  [Header("Mining Rate by Level")]
+  [Tooltip("units per second; index = level - 1")]
+  public List<float> MiningRatePerLevel = new List<float>();
+
+  [Header("Popup Settings")]
+  [Tooltip("The prefix symbol shown in the floating popups")]
+  public string PopupSymbol = "+";
+
+  [Header("Building Info Canvas Style")]
+  public TextStyle InfoCanvasStyle;
+
+  [Header("Mining Rate Canvas Style")]
+  public TextStyle RateCanvasStyle;
+
   public event Action<int[]> OnCollectedDelta;
 
   private MiningDrillUI _ui;
@@ -14,11 +43,22 @@ public class MiningDrillData : MonoBehaviour
 
   void Awake()
   {
-    _ui = GetComponentInChildren<MiningDrillUI>();
+    if (gameObject.layer == LayerMask.NameToLayer("Ghost"))
+    {
+      enabled = false;
+      return;
+    }
 
-    // build “which materials we actually mine”
-    _minedIndices = new List<int>();
+    _ui = GetComponentInChildren<MiningDrillUI>();
+    if (_ui == null)
+    {
+      Debug.LogError($"[{name}] MiningDrillData needs a MiningDrillUI child");
+      enabled = false;
+      return;
+    }
+
     var all = _ui.Materials;
+    _minedIndices = new List<int>();
     for (int i = 0; i < all.Count; i++)
       if (all[i].isMined)
         _minedIndices.Add(i);
@@ -32,7 +72,6 @@ public class MiningDrillData : MonoBehaviour
 
   void OnEnable()
   {
-    // start one loop per mined‐slot
     for (int slot = 0; slot < _intervals.Length; slot++)
       StartCoroutine(AccumulateLoop(slot, _intervals[slot]));
   }
@@ -53,19 +92,26 @@ public class MiningDrillData : MonoBehaviour
     int fullCount = _ui.Materials.Count;
     var result = new int[fullCount];
 
-    // copy out and zero internal
     for (int slot = 0; slot < _collectedCounts.Length; slot++)
     {
-      int originalIndex = _minedIndices[slot];
-      result[originalIndex] = _collectedCounts[slot];
+      int orig = _minedIndices[slot];
+      result[orig] = _collectedCounts[slot];
       _collectedCounts[slot] = 0;
     }
 
-    // update the CollectPanel (so it jumps back to zero)
     OnCollectedDelta?.Invoke(_collectedCounts);
-
     return result;
   }
 
   public int[] CollectedCounts => _collectedCounts;
+
+  // show the rate from the list directly, rounded to int
+  public int PopupAmount
+  {
+    get
+    {
+      int idx = Mathf.Clamp(Level - 1, 0, MiningRatePerLevel.Count - 1);
+      return Mathf.RoundToInt(MiningRatePerLevel[idx]);
+    }
+  }
 }

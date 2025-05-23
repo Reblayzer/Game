@@ -13,8 +13,9 @@ public class SurroundingLayerController : MonoBehaviour
 
   private void Awake()
   {
+    // Use the non-obsolete API
     if (plotManager == null)
-      plotManager = FindObjectOfType<PlotManager>();
+      plotManager = Object.FindFirstObjectByType<PlotManager>();
 
     if (layersParent == null)
       Debug.LogError("Layers Parent is not assigned on SurroundingLayerController.");

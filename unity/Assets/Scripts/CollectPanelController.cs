@@ -31,7 +31,7 @@ public class CollectPanelController : MonoBehaviour
   {
     if (PlotSelector.Instance == null)
     {
-      Debug.LogError("[CollectPanelController] PlotSelector.Instance is null. Has your PlotSelector already Awake() and set Instance?");
+      Debug.LogError("[CollectPanelController] PlotSelector.Instance is null.");
       return;
     }
 
@@ -45,16 +45,10 @@ public class CollectPanelController : MonoBehaviour
 
   private void HandleShowRequest(MiningDrillData drill)
   {
-    // 1) unsubscribe any old listeners
-    if (_currentUI != null)
-    {
-      _currentUI.OnIconsSpawned -= HandleIconsOrData;
+    // unsubscribe old
+    if (_currentDrill != null)
       _currentDrill.OnCollectedDelta -= HandleIconsOrData;
-      _currentUI = null;
-      _currentDrill = null;
-    }
 
-    // 2) now install the new drill (or null)
     _currentDrill = drill;
     collectPanel.SetActive(drill != null);
     collectButton.interactable = (drill != null);
@@ -63,16 +57,15 @@ public class CollectPanelController : MonoBehaviour
       return;
 
     _currentUI = drill.GetComponentInChildren<MiningDrillUI>();
-    _currentUI.OnIconsSpawned += HandleIconsOrData;
     _currentDrill.OnCollectedDelta += HandleIconsOrData;
     RefreshDisplay(_currentDrill.CollectedCounts);
   }
 
-  private void HandleIconsOrData(int[] dummy) => HandleIconsOrData();
-  private void HandleIconsOrData()
+  private void HandleIconsOrData(int[] _)
   {
     if (_currentDrill == null || !collectPanel.activeInHierarchy)
       return;
+
     float delay = _currentUI?.FadeInDuration ?? 0f;
     if (_refreshRoutine != null) StopCoroutine(_refreshRoutine);
     _refreshRoutine = StartCoroutine(DelayedRefresh(_currentDrill.CollectedCounts, delay));
@@ -88,36 +81,28 @@ public class CollectPanelController : MonoBehaviour
   {
     int resourceIndex = 0;
 
-    // walk every child of the panel…
     for (int i = 0; i < slotsParent.childCount; i++)
     {
       var child = slotsParent.GetChild(i);
+      if (!child.name.EndsWith("Resource")) continue;
 
-      // only process objects whose name ends with "Resource"
-      if (!child.name.EndsWith("Resource"))
-        continue;
-
-      // find the AmountLabel under that slot
       var label = child
         .Find("Amount/AmountLabel")
         .GetComponent<TMP_Text>();
 
-      // pick the right total or zero if out of range
       int value = resourceIndex < totals.Length ? totals[resourceIndex] : 0;
       label.text = value.ToString();
-
       resourceIndex++;
     }
   }
 
   private void OnCollectPressed()
   {
-    Debug.Log("Collect pressed! _currentDrill = " + _currentDrill);
     if (_currentDrill == null) return;
-
     var justMined = _currentDrill.ConsumeAll();
-    Debug.Log("  pulled: " + string.Join(",", justMined));
     WarehouseData.Instance.AddToWarehouse(justMined);
+
+    // reset UI slots using the drill's collected‐counts length
     RefreshDisplay(new int[_currentUI.Materials.Count]);
   }
 }

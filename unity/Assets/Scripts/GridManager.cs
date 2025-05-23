@@ -67,6 +67,9 @@ public class GridManager : MonoBehaviour
     public GameObject abandonedMarkerCanvasPrefab;
     public GameObject opponentMarkerCanvasPrefab;
 
+    // How many buildings we’ve placed on this plot so far.</summary>
+    public int CuboidCount { get; private set; }
+
     public event Action OnCuboidPlaced;
 
     private AudioSource audioSource;
@@ -407,7 +410,7 @@ public class GridManager : MonoBehaviour
                 if (x < 0 || z < 0 || x >= gridSize || z >= gridSize || occupiedTiles[x, z])
                     return;
 
-        // 3) world‐space box for OverlapBox
+        // 3) world‐space overlap test
         float offset = gridSize / 2f - 0.5f;
         Vector3 center = transform.position + new Vector3(
             startX + length * 0.5f - 0.5f - offset,
@@ -416,30 +419,27 @@ public class GridManager : MonoBehaviour
         );
         Vector3 halfExtents = new Vector3(length * 0.5f, current.height * 0.5f, width * 0.5f);
         Quaternion rot = isRotated ? Quaternion.Euler(0, 90, 0) : Quaternion.identity;
-
-        // 4) overlap test against already‐placed buildings
         if (Physics.OverlapBox(center, halfExtents, rot, _placedMask).Length > 0)
             return;
 
-        // 5) instantiate exactly once
-        GameObject placed = Instantiate(current.prefab, center, rot);
+        // 5) instantiate and parent
+        GameObject placed = Instantiate(current.prefab, center, rot, transform);
         SetLayerRecursive(placed, LayerMask.NameToLayer("Placed"));
         SetLayerRecursive(placed, LayerMask.NameToLayer("MiningDrill"));
 
         // 6) hook up selectable
         var sel = placed.AddComponent<SelectableCuboid>();
-        sel.cuboidName = current.name;
-        sel.infoPanel = SelectedCuboidUIPanel;
-        sel.infoDisplay = SelectedCuboidInfoText;
-        sel.upgradeButton = UpgradeButton;
-        sel.Init(this);
 
-        // 7) mark grid cells
+        // 7) wire up any BuildingInfoDisplay under the model
+        foreach (var info in placed.GetComponentsInChildren<BuildingInfoDisplay>(true))
+            info.SetOwner(sel);
+
+        // 8) mark grid cells occupied
         for (int x = startX; x < startX + length; x++)
             for (int z = startZ; z < startZ + width; z++)
                 occupiedTiles[x, z] = true;
 
-        // 8) cleanup
+        // 9) cleanup visuals & sound
         ClearHighlights();
         if (placementSound != null && audioSource != null)
         {
@@ -452,7 +452,11 @@ public class GridManager : MonoBehaviour
             var vfx = Instantiate(current.shockwavePrefab, vfxPos, Quaternion.identity);
             Destroy(vfx, 2f);
         }
+
+        // 10) notify
+        CuboidCount++;
         OnCuboidPlaced?.Invoke();
+        PlotSelector.Instance?.RaisePlotChanged();
     }
 
     private void SetLayerRecursive(GameObject obj, int layer)
@@ -595,6 +599,10 @@ public class GridManager : MonoBehaviour
             ghostObject.name = ghostName;
             lastGhostName = ghostName;
 
+            // strip out any MiningDrillUI on the ghost so it won't error
+            foreach (var ui in ghostObject.GetComponentsInChildren<MiningDrillUI>(true))
+                Destroy(ui);
+
             SetLayerRecursive(ghostObject, LayerMask.NameToLayer("Ghost"));
             ApplyGhostMaterial(ghostObject, isValid);
         }
@@ -635,6 +643,10 @@ public class GridManager : MonoBehaviour
 
     public void HighlightPlot(Color color)
     {
+        // nothing to do until the grid is built
+        if (!initialized || tileGrid == null)
+            return;
+
         currentHighlightColor = color;
 
         for (int x = 0; x < gridSize; x++)
@@ -645,6 +657,7 @@ public class GridManager : MonoBehaviour
             }
         }
     }
+
 
     public void ResetTileColors()
     {
@@ -694,7 +707,8 @@ public class GridManager : MonoBehaviour
     {
         selectedCuboidUIPanel?.SetActive(false);
         upgradeButton?.gameObject.SetActive(false);
-        SelectableCuboid.currentlySelectedCuboid = null;
+        // clear any building‐info canvas via the selection event
+        SelectableCuboid.ClearSelection();
     }
 
     void Update()
