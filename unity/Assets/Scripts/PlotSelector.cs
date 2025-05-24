@@ -10,6 +10,7 @@ public class PlotSelector : MonoBehaviour
 
   public event Action OnPlotChanged;
   public event Action<MiningDrillData> onCollectPanelRequested;
+  public event Action<MiningDrillData> onUpgradePanelRequested;
 
   [Header("Wiring")]
   public BuildingButtonSelector buttonSelector;
@@ -18,6 +19,7 @@ public class PlotSelector : MonoBehaviour
   [Header("UI")]
   public Toggle mapToggle;
   public Toggle buildToggle;
+  public Toggle editToggle;
   public Button buildingsButton;
 
   [Header("Plot Details Panels")]
@@ -27,8 +29,10 @@ public class PlotSelector : MonoBehaviour
   [Header("Building Details Panel")]
   public GameObject buildInfoPanel;
 
-  [Header("Collect Panel")]
+  [Header("Building-Selected Panel")]
   public GameObject collectPanel;
+  public GameObject upgradePanel;
+  public GameObject editPanel;
 
   [Header("VFX Prefabs")]
   public GameObject fogVFXPrefab;
@@ -45,7 +49,25 @@ public class PlotSelector : MonoBehaviour
   void Awake()
   {
     if (Instance == null) Instance = this;
-    mapToggle?.onValueChanged.AddListener(_ => UpdateBuildingsButton());
+
+    // whenever I flip Build or Edit, I want the panels
+    // to re-evaluate the currently selected drill.
+    buildToggle.onValueChanged.AddListener(_ => ShowDrillPanels(_currentDrill));
+    editToggle.onValueChanged.AddListener(_ => ShowDrillPanels(_currentDrill));
+
+    // keep your existing exclusivity logic if you like
+    buildToggle.onValueChanged.AddListener(on =>
+    {
+      if (on && editToggle.isOn) editToggle.isOn = false;
+      UpdateBuildingsButton();
+    });
+    editToggle.onValueChanged.AddListener(on =>
+    {
+      if (on && buildToggle.isOn) buildToggle.isOn = false;
+      // EditToggleController will show/hide editPanel for you
+    });
+
+    mapToggle.onValueChanged.AddListener(_ => UpdateBuildingsButton());
     UpdateBuildingsButton();
   }
 
@@ -76,7 +98,7 @@ public class PlotSelector : MonoBehaviour
       return;
     }
 
-    if (buildToggle != null && buildToggle.isOn && gm.ownership != Ownership.Yours)
+    if (buildToggle.isOn && gm.ownership != Ownership.Yours)
       buildToggle.isOn = false;
 
     buildInfoPanel?.SetActive(false);
@@ -125,6 +147,9 @@ public class PlotSelector : MonoBehaviour
   public void ShowPlotInfoPanels()
   {
     collectPanel?.SetActive(false);
+    upgradePanel?.SetActive(false);
+    editPanel?.SetActive(false);
+
     var gm = buttonSelector.GetActiveGridManager();
     if (gm == null) return;
 
@@ -174,31 +199,70 @@ public class PlotSelector : MonoBehaviour
     HideCollectPanel();
     var gm = buttonSelector.GetActiveGridManager();
     if (gm == null) return;
+
+    // ensure Build‐mode toggle is on
+    if (buildToggle != null)
+      buildToggle.isOn = true;
+
+    // now enter placement
     buttonSelector.ToggleEditMode(true);
     gm.SetActive(true);
     gm.SetEditMode(true);
     gm.StartPlacementPhase();
   }
 
-  public void ShowCollectPanel(MiningDrillData drill)
+  public void ShowDrillPanels(MiningDrillData drill)
   {
+    Debug.Log($"[PlotSelector] ShowDrillPanels: " +
+              $"drill={(drill == null ? "null" : drill.name)}, " +
+              $"build={buildToggle.isOn}, edit={editToggle.isOn}");
+
+    // hide everything
     plotInfoPanel?.SetActive(false);
     buyPlotInfoPanel?.SetActive(false);
     buildInfoPanel?.SetActive(false);
+    collectPanel?.SetActive(false);
+    upgradePanel?.SetActive(false);
+    editPanel?.SetActive(false);
 
-    collectPanel?.SetActive(true);
-    onCollectPanelRequested?.Invoke(drill);
-
-    // unsubscribe old
+    // unhook old
     if (_currentDrill != null)
       _currentDrill.OnCollectedDelta -= HandleDataDelta;
 
-    // new hook
-    _currentUI = drill.GetComponentInChildren<MiningDrillUI>();
     _currentDrill = drill;
-    _currentDrill.OnCollectedDelta += HandleDataDelta;
+    _currentUI = drill?.GetComponentInChildren<MiningDrillUI>();
 
-    RefreshDisplay(_currentDrill.CollectedCounts);
+    if (drill == null)
+    {
+      // clear both controllers
+      onCollectPanelRequested?.Invoke(null);
+      onUpgradePanelRequested?.Invoke(null);
+      return;
+    }
+
+    // 4A) BUILD mode → UPGRADE
+    if (buildToggle.isOn)
+    {
+      Debug.Log("[PlotSelector] → build mode, showing upgradePanel");
+      onUpgradePanelRequested?.Invoke(drill);
+      upgradePanel.SetActive(true);
+    }
+    // 4B) EDIT mode → EDIT
+    else if (editToggle.isOn)
+    {
+      Debug.Log("[PlotSelector] → edit mode, showing editPanel");
+      // EditToggleController.OnToggleChanged will show it
+      editPanel.SetActive(true);
+    }
+    // 4C) neither → COLLECT
+    else
+    {
+      Debug.Log("[PlotSelector] → neither build nor edit, showing collectPanel");
+      onCollectPanelRequested?.Invoke(drill);
+      collectPanel.SetActive(true);
+      drill.OnCollectedDelta += HandleDataDelta;
+      RefreshDisplay(drill.CollectedCounts);
+    }
   }
 
   public void HideCollectPanel()

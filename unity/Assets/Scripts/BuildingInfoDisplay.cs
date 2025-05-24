@@ -6,15 +6,18 @@ using TMPro;
 [RequireComponent(typeof(CanvasGroup))]
 public class BuildingInfoDisplay : MonoBehaviour
 {
-  [SerializeField] private TextMeshProUGUI _nameText;
+  [Header("UI Elements")]
+  [Tooltip("Child TextMeshProUGUI that shows the Roman numeral")]
   [SerializeField] private TextMeshProUGUI _levelText;
+
+  [Tooltip("The Shield background that should appear/vanish")]
+  [SerializeField] private GameObject _shieldGraphic;
 
   private CanvasGroup _cg;
   private Toggle _buildToggle, _editToggle;
   private SelectableCuboid _owner;
   private UnityAction<bool> _onToggleChanged;
 
-  // ←– re-add this so GridManager can assign the SelectableCuboid
   public void SetOwner(SelectableCuboid owner)
   {
     _owner = owner;
@@ -22,7 +25,7 @@ public class BuildingInfoDisplay : MonoBehaviour
 
   void Awake()
   {
-    // always ensure you have a CanvasGroup
+    // ensure there’s a CanvasGroup
     _cg = GetComponent<CanvasGroup>() ?? gameObject.AddComponent<CanvasGroup>();
 
     // start hidden
@@ -51,24 +54,24 @@ public class BuildingInfoDisplay : MonoBehaviour
   private void HandleSelection(SelectableCuboid selected)
   {
     bool anyMode = _buildToggle.isOn || _editToggle.isOn;
+
     if (selected == _owner && anyMode)
     {
       var data = _owner.GetComponent<MiningDrillData>();
       if (data != null)
       {
-        _nameText.text = data.DrillName;
-        _levelText.text = $"Level {data.Level}";
+        // set level text to Roman
+        _levelText.text = ToRoman(data.Level);
 
+        // apply text style from InfoCanvasStyle
         var s = data.InfoCanvasStyle;
-        _nameText.font = s.Font;
-        _nameText.fontSize = s.FontSize;
-        _nameText.color = s.Color;
-
         _levelText.font = s.Font;
         _levelText.fontSize = s.FontSize;
         _levelText.color = s.Color;
       }
 
+      // show shield + text
+      _shieldGraphic.SetActive(true);
       _cg.alpha = 1;
       _cg.interactable = true;
       _cg.blocksRaycasts = true;
@@ -81,8 +84,32 @@ public class BuildingInfoDisplay : MonoBehaviour
 
   public void Hide()
   {
+    // hide shield + text
+    _shieldGraphic.SetActive(false);
     _cg.alpha = 0;
     _cg.interactable = false;
     _cg.blocksRaycasts = false;
+  }
+
+  private static string ToRoman(int number)
+  {
+    var map = new[]
+    {
+            new { Value=1000, Symbol="M" }, new { Value=900, Symbol="CM" },
+            new { Value=500,  Symbol="D" }, new { Value=400, Symbol="CD" },
+            new { Value=100,  Symbol="C" }, new { Value=90,  Symbol="XC" },
+            new { Value=50,   Symbol="L" }, new { Value=40,  Symbol="XL" },
+            new { Value=10,   Symbol="X" }, new { Value=9,   Symbol="IX" },
+            new { Value=5,    Symbol="V" }, new { Value=4,   Symbol="IV" },
+            new { Value=1,    Symbol="I" },
+        };
+    var result = "";
+    foreach (var item in map)
+      while (number >= item.Value)
+      {
+        result += item.Symbol;
+        number -= item.Value;
+      }
+    return result;
   }
 }

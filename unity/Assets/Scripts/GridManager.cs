@@ -631,7 +631,7 @@ public class GridManager : MonoBehaviour
 
     public void SetPlotID(string id)
     {
-        Debug.Log($"Assigned Plot ID: {id}");
+        //Debug.Log($"Assigned Plot ID: {id}");
     }
 
     public void SetUIReferences(GameObject panel, TMP_Text infoText, Button upgradeBtn)

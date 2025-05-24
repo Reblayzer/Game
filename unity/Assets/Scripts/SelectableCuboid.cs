@@ -26,36 +26,49 @@ public class SelectableCuboid : MonoBehaviour
     {
         _current = null;
         OnCuboidSelected?.Invoke(null);
+        // also clear any panels
+        PlotSelector.Instance.ShowDrillPanels(null);
     }
 
     void OnMouseDown()
     {
-        if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
-            return;
+        if (EventSystem.current?.IsPointerOverGameObject() == true) return;
 
         bool buildMode = _buildToggle.isOn;
         bool editMode = _editToggle.isOn;
+        var drill = GetComponent<MiningDrillData>();
 
-        // 1) Not in build/edit → only show collect‐panel for drills
+        Debug.Log($"[SelectableCuboid] Clicked '{name}': buildMode={buildMode}, editMode={editMode}, drill={(drill != null ? "yes" : "no")}");
+
+        // A) Neither toggle → Collect
         if (!buildMode && !editMode)
         {
-            var drill = GetComponent<MiningDrillData>();
-            if (drill != null)
-                PlotSelector.Instance.ShowCollectPanel(drill);
+            Debug.Log("[SelectableCuboid] → none selected, routing to collect");
+            if (drill != null) PlotSelector.Instance.ShowDrillPanels(drill);
             return;
         }
 
-        // 2) In build/edit → always hide collect‐panel
-        PlotSelector.Instance.HideCollectPanel();
+        // B) Build mode → Upgrade
+        if (buildMode)
+        {
+            Debug.Log("[SelectableCuboid] → buildMode, routing to upgrade");
+            PlotSelector.Instance.ShowDrillPanels(drill);
+        }
+        // C) Edit mode → just select for shield/UI, don’t change panels
+        else if (editMode)
+        {
+            Debug.Log("[SelectableCuboid] → editMode, only firing OnCuboidSelected");
+        }
 
-        // 3) Select this cuboid (firing the global event drives your BuildingInfoDisplay)
         _current = this;
         OnCuboidSelected?.Invoke(this);
     }
 
+
     public void Upgrade()
     {
         _level++;
+        // if we're still selected, re-fire so any UI updates to the level happen
         if (_current == this)
             OnCuboidSelected?.Invoke(this);
     }
